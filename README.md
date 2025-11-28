@@ -14,5 +14,5 @@ Please note that the application **requires administrator privileges to run**.
 [sing-box documentation](https://sing-box.sagernet.org/configuration/)
 
 ## Screenshots
-<img width="503" alt="image (6)" src="https://github.com/user-attachments/assets/cd753b58-7f00-4ee4-b8ab-89d5ec74b0c3" />
-<img width="503" alt="image (7)" src="https://github.com/user-attachments/assets/5940780c-a82c-4433-8ab2-607ac2ab1bb4" />
+<img width="410" alt="image (6)" src="https://github.com/user-attachments/assets/cd753b58-7f00-4ee4-b8ab-89d5ec74b0c3" />
+<img width="410" alt="image (7)" src="https://github.com/user-attachments/assets/5940780c-a82c-4433-8ab2-607ac2ab1bb4" />
