@@ -1,0 +1,76 @@
+{
+    "dns": {
+        "final": "google-tls-dns",
+        "servers": [
+            {
+                "address": "tls://8.8.8.8",
+                "detour": "direct",
+                "tag": "google-tls-dns"
+            }
+        ]
+    },
+    "inbounds": [
+        {
+            "address": [
+                "172.19.0.1/24"
+            ],
+            "auto_route": true,
+            "interface_name": "singtun0",
+            "mtu": 1500,
+            "stack": "mixed",
+            "strict_route": true,
+            "tag": "tun-in",
+            "type": "tun"
+        }
+    ],
+    "log": {
+        "level": "warn"
+    },
+    "outbounds": [
+        {
+            "tag": "direct",
+            "type": "direct"
+        },
+        {
+            "flow": "xtls-rprx-vision",
+            "packet_encoding": "xudp",
+            "server": "...",
+            "server_port": 443,
+            "tag": "proxy",
+            "tls": {
+                "alpn": [
+                    "http/1.1"
+                ],
+                "enabled": true
+            },
+            "type": "vless",
+            "uuid": "..."
+        }
+    ],
+    "route": {
+        "auto_detect_interface": true,
+        "final": "proxy",
+        "rules": [
+            {
+                "action": "sniff",
+                "inbound": [
+                    "tun-in"
+                ]
+            },
+            {
+                "action": "hijack-dns",
+                "protocol": "dns"
+            },
+            {
+                "action": "reject",
+                "method": "drop",
+                "protocol": "quic"
+            },
+            {
+                "action": "route",
+                "outbound": "direct",
+                "protocol": "bittorrent"
+            }
+        ]
+    }
+}
