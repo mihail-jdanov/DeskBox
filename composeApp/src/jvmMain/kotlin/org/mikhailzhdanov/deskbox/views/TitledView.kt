@@ -32,7 +32,7 @@ fun TitledView(
             HorizontalDivider(modifier = Modifier.alpha(0.5f))
 
             Box(
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
             ) {
                 content()
             }

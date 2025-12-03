@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.input.OutputTransformation
 import androidx.compose.foundation.text.input.TextFieldDecorator
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
@@ -19,6 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 
 @Composable
@@ -29,10 +31,12 @@ fun CustomTextField(
     maxLength: Int = Int.MAX_VALUE,
     placeholder: String = "",
     enabled: Boolean = true,
-    textStyle: TextStyle = TextStyle.Default.copy(fontSize = 16.sp),
+    fontSize: TextUnit = 16.sp,
+    fontFamily: FontFamily = FontFamily.Default,
+    leftAligned: Boolean = true,
     type: CustomTextFieldType = CustomTextFieldType.SingleLine,
     scrollState: ScrollState = rememberScrollState(),
-    outputTransformation: OutputTransformation? = null
+    inputFilter: (String) -> String = { it }
 ) {
     val state = remember { TextFieldState(value) }
 
@@ -51,19 +55,21 @@ fun CustomTextField(
     LaunchedEffect(state) {
         snapshotFlow { state.text }
             .collect { newText ->
-                val limitedText = if (newText.length > maxLength) {
+                var text = newText as String
+                if (text.length > maxLength) {
+                    text = text.take(maxLength)
+                }
+                text = inputFilter(text)
+                if (text != newText) {
                     state.edit {
                         replace(
                             start = 0,
                             end = state.text.length,
-                            text = newText.take(maxLength)
+                            text = text
                         )
                     }
-                    newText.take(maxLength)
-                } else {
-                    newText
                 }
-                onValueChange(limitedText as String)
+                onValueChange(text)
             }
     }
 
@@ -72,20 +78,28 @@ fun CustomTextField(
             state = state,
             modifier = modifier,
             enabled = enabled,
-            textStyle = textStyle,
+            textStyle = TextStyle.Default.copy(
+                fontSize = fontSize,
+                fontFamily = fontFamily,
+                textAlign = if (leftAligned) TextAlign.Start else TextAlign.End
+            ),
             lineLimits = if (type == CustomTextFieldType.SingleLine) {
                 TextFieldLineLimits.SingleLine
             } else {
                 TextFieldLineLimits.MultiLine()
             },
-            outputTransformation = outputTransformation,
             decorator = TextFieldDecorator { innerTextField ->
-                Box(contentAlignment = Alignment.TopStart) {
+                Box(
+                    contentAlignment = if (leftAligned) Alignment.TopStart else Alignment.TopEnd
+                ) {
                     if (state.text.isEmpty()) {
                         Text(
                             text = placeholder,
                             modifier = Modifier.alpha(0.5f),
-                            style = textStyle
+                            style = TextStyle.Default.copy(
+                                fontSize = fontSize,
+                                fontFamily = fontFamily
+                            )
                         )
                     }
                     innerTextField()

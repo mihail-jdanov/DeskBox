@@ -16,11 +16,13 @@ object SingBoxManager {
 
     private const val CORE_FILE_NAME = "sing-box.exe"
     private const val CONFIG_FILE_NAME = "config.json"
+    private const val CONFIG_TEMP_FILE_NAME = "config_temp.json"
     private const val MAX_LOG_LINES = 1000
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val coreFile = File(CORE_FILE_NAME)
     private val configFile = File(CONFIG_FILE_NAME)
+    private var configTempFile = File(CONFIG_TEMP_FILE_NAME)
     private val _logs = MutableStateFlow("")
     private val _isRunning = MutableStateFlow(false)
     private val _version = MutableStateFlow("")
@@ -50,6 +52,7 @@ object SingBoxManager {
             .start()
         _logs.value = ""
         _isRunning.value = true
+        RemoteConfigsManager.startConfigUpdates(profile)
         lastStartedProfile = profile
         logJob = scope.launch(Dispatchers.IO) {
             process?.inputStream?.bufferedReader()?.useLines { lines ->
@@ -60,6 +63,7 @@ object SingBoxManager {
             process?.waitFor()
             withContext(Dispatchers.Main) {
                 _isRunning.value = false
+                RemoteConfigsManager.stopConfigUpdates()
             }
         }
     }
@@ -70,6 +74,34 @@ object SingBoxManager {
         process = null
         logJob?.cancel()
         _isRunning.value = false
+        RemoteConfigsManager.stopConfigUpdates()
+    }
+
+    fun validateConfig(config: String): String {
+        configTempFile.writeText(config)
+        val process = ProcessBuilder(coreFile.absolutePath, "check", "-c", configTempFile.absolutePath)
+            .redirectErrorStream(true)
+            .start()
+        val output = process.inputStream.bufferedReader().readText()
+        process.waitFor()
+        var lines = output.lines().filter { line ->
+            line.contains("FATAL")
+        }.map { line ->
+            var result = line.split("] ").lastOrNull() ?: ""
+            result = result.replace(
+                oldValue = "config at " + configTempFile.absolutePath,
+                newValue = CONFIG_TEMP_FILE_NAME
+            )
+            result.replaceFirstChar { it.uppercaseChar() }
+        }
+        if (lines.count() > 1) {
+            lines = lines.map { "— $it" }
+        }
+        return lines.joinToString("\n")
+    }
+
+    fun isValidConfig(config: String): Boolean {
+        return validateConfig(config).isEmpty()
     }
 
     private fun appendLog(line: String) {

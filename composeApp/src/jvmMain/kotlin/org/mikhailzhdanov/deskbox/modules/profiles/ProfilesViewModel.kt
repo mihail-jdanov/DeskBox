@@ -9,6 +9,9 @@ import kotlinx.coroutines.launch
 import org.mikhailzhdanov.deskbox.Profile
 import org.mikhailzhdanov.deskbox.managers.ProfilesManager
 import org.mikhailzhdanov.deskbox.managers.SingBoxManager
+import org.mikhailzhdanov.deskbox.modules.appContainer.appContainerViewModel
+import org.mikhailzhdanov.deskbox.tools.RemoteConfigsFetcher
+import org.mikhailzhdanov.deskbox.tools.TimestampFormatter
 
 class ProfilesViewModel: ViewModel() {
 
@@ -51,6 +54,32 @@ class ProfilesViewModel: ViewModel() {
         ProfilesManager.deleteProfile(profile)
         if (SingBoxManager.lastStartedProfile?.id == profile.id) {
             SingBoxManager.stop()
+        }
+    }
+
+    fun updateProfileConfig(profile: Profile) {
+        if (!profile.isRemote) return
+        appContainerViewModel.setLoading(true)
+        viewModelScope.launch {
+            try {
+                val config = RemoteConfigsFetcher.fetchConfig(profile.remoteURL)
+                appContainerViewModel.setLoading(false)
+                val configError = SingBoxManager.validateConfig(config)
+                if (configError.isEmpty()) {
+                    val updatedProfile = profile.copy(
+                        config = config,
+                        lastUpdateTimestamp = TimestampFormatter.getCurrentTimestamp()
+                    )
+                    ProfilesManager.saveProfile(updatedProfile)
+                } else {
+                    appContainerViewModel.setAlertText(
+                        "Invalid config\n\n$configError"
+                    )
+                }
+            } catch (e: Exception) {
+                appContainerViewModel.setLoading(false)
+                appContainerViewModel.setAlertText(e.message ?: "")
+            }
         }
     }
 

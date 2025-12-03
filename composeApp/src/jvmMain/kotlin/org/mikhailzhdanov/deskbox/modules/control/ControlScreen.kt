@@ -59,96 +59,95 @@ fun ControlScreen() {
 
     Column {
         TitledView("Control") {
-            Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+            Row(
+                modifier = Modifier.padding(top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = {
+                        if (state.isRunning) {
+                            viewModel.stop()
+                        } else {
+                            viewModel.start()
+                        }
+                    },
+                    enabled = state.isStartAvailable,
+                    colors = if (state.isRunning) {
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        )
+                    } else {
+                        ButtonDefaults.buttonColors()
+                    }
                 ) {
-                    Button(
-                        onClick = {
-                            if (state.isRunning) {
-                                viewModel.stop()
-                            } else {
-                                viewModel.start()
-                            }
-                        },
-                        enabled = state.isStartAvailable,
-                        colors = if (state.isRunning) {
-                            ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error
-                            )
-                        } else {
-                            ButtonDefaults.buttonColors()
-                        }
-                    ) {
-                        Text(if (state.isRunning) "Stop" else "Start")
-                    }
-
-                    ExposedDropdownMenuBox(
-                        expanded = state.showProfileDropdown,
-                        onExpandedChange = { viewModel.setShowProfileDropdown(it) },
-                        modifier = Modifier.padding(horizontal = 8.dp)
-                    ) {
-                        FilledTonalButton(
-                            onClick = { viewModel.setShowProfileDropdown(true) },
-                            modifier = Modifier.width(260.dp),
-                            enabled = state.profiles.isNotEmpty()
-                        ) {
-                            Text(
-                                text = state.selectedProfile?.name ?: "No profile selected",
-                                modifier = Modifier
-                                    .padding(end = 8.dp)
-                                    .weight(1f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-
-                            Text(
-                                text = if (state.showProfileDropdown) "⏶" else "⏷",
-                                modifier = Modifier.padding(bottom = 3.dp)
-                            )
-                        }
-
-                        ExposedDropdownMenu(
-                            expanded = state.showProfileDropdown,
-                            onDismissRequest = { viewModel.setShowProfileDropdown(false) }
-                        ) {
-                            state.profiles.forEach { profile ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            text = profile.name,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    },
-                                    onClick = {
-                                        viewModel.setShowProfileDropdown(false)
-                                        viewModel.selectProfile(profile)
-                                    },
-                                    trailingIcon = {
-                                        if (state.selectedProfile?.id == profile.id) {
-                                            Icon(imageVector = Icons.Default.Check, contentDescription = null)
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    Text(
-                        text = state.version,
-                        modifier = Modifier
-                            .padding(start = 8.dp),
-                        color = if (state.isVersionError) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            Color.Unspecified
-                        },
-                        textAlign = TextAlign.End
-                    )
+                    Text(if (state.isRunning) "Stop" else "Start")
                 }
+
+                ExposedDropdownMenuBox(
+                    expanded = state.showProfileDropdown,
+                    onExpandedChange = { viewModel.setShowProfileDropdown(it) },
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                ) {
+                    FilledTonalButton(
+                        onClick = { viewModel.setShowProfileDropdown(true) },
+                        modifier = Modifier.width(260.dp),
+                        enabled = state.profiles.isNotEmpty()
+                    ) {
+                        Text(
+                            text = state.selectedProfile?.name ?: "No profile selected",
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .weight(1f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Text(
+                            text = if (state.showProfileDropdown) "⏶" else "⏷",
+                            modifier = Modifier.padding(bottom = 3.dp)
+                        )
+                    }
+
+                    ExposedDropdownMenu(
+                        expanded = state.showProfileDropdown,
+                        onDismissRequest = { viewModel.setShowProfileDropdown(false) }
+                    ) {
+                        state.profiles.forEach { profile ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = profile.name,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                },
+                                onClick = {
+                                    viewModel.setShowProfileDropdown(false)
+                                    viewModel.selectProfile(profile)
+                                },
+                                trailingIcon = {
+                                    if (state.selectedProfile?.id == profile.id) {
+                                        Icon(imageVector = Icons.Default.Check, contentDescription = null)
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Text(
+                    text = state.version,
+                    modifier = Modifier
+                        .padding(start = 8.dp),
+                    color = if (state.isVersionError) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        Color.Unspecified
+                    },
+                    textAlign = TextAlign.End
+                )
             }
         }
 

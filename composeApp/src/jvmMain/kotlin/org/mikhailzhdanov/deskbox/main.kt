@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import com.kdroid.composetray.utils.SingleInstanceManager
 import deskbox.composeapp.generated.resources.Res
 import deskbox.composeapp.generated.resources.tray_icon
 import org.jetbrains.compose.resources.painterResource
@@ -18,6 +19,7 @@ import org.mikhailzhdanov.deskbox.managers.AutorunManager
 import org.mikhailzhdanov.deskbox.managers.ProfilesManager
 import org.mikhailzhdanov.deskbox.managers.SettingsManager
 import org.mikhailzhdanov.deskbox.managers.SingBoxManager
+import org.mikhailzhdanov.deskbox.modules.appContainer.AppContainerScreen
 import org.mikhailzhdanov.deskbox.modules.menu.MenuScreen
 import org.mikhailzhdanov.deskbox.modules.tray.TrayMenu
 
@@ -33,6 +35,18 @@ fun main() = application {
     val minimizeOnLaunch = SettingsManager.minimizeOnLaunch.value
     var windowVisible by remember { mutableStateOf(!minimizeOnLaunch) }
     val windowIcon = painterResource(Res.drawable.tray_icon)
+
+    val isSingleInstance = SingleInstanceManager.isSingleInstance(
+        onRestoreRequest = {
+            windowVisible = true
+            composeWindow?.requestFocus()
+        }
+    )
+
+    if (!isSingleInstance) {
+        exitApplication()
+        return@application
+    }
 
     LaunchedEffect(Unit) {
         if (SettingsManager.autostartProfile.value) {
@@ -77,7 +91,9 @@ fun main() = application {
             MaterialTheme(
                 colorScheme = colorScheme
             ) {
-                MenuScreen()
+                AppContainerScreen {
+                    MenuScreen()
+                }
             }
         }
     }

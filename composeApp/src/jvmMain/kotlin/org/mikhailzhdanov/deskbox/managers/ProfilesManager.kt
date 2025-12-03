@@ -37,6 +37,7 @@ object ProfilesManager {
     }
 
     fun saveProfile(profile: Profile) {
+        val oldProfile = _profiles.value.firstOrNull { it.id == profile.id }
         val currentProfiles = _profiles.value.toMutableList()
         val existingIndex = currentProfiles.indexOfFirst { it.id == profile.id }
         if (existingIndex >= 0) {
@@ -51,6 +52,14 @@ object ProfilesManager {
             )
         )
         _profiles.value = currentProfiles
+        oldProfile?.let { oldProfile ->
+            if (SingBoxManager.isRunning.value
+                && SingBoxManager.lastStartedProfile?.id == profile.id
+                && oldProfile.config != profile.config) {
+                SingBoxManager.stop()
+                SingBoxManager.start(profile)
+            }
+        }
     }
 
     fun deleteProfile(profile: Profile) {

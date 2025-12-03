@@ -4,7 +4,14 @@ import org.mikhailzhdanov.deskbox.Profile
 
 data class EditProfileUIState(
     val profile: Profile,
-    val showEditConfigDialog: Boolean,
+    val showConfigDialog: Boolean,
     val isSaveAvailable: Boolean,
-    val errorMessage: String
+    val isConfigInvalid: Boolean,
+    val configButtonMode: ConfigButtonMode
 )
+
+enum class ConfigButtonMode {
+    Edit,
+    View,
+    None
+}

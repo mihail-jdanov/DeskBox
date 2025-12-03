@@ -4,20 +4,24 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,7 +37,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import org.mikhailzhdanov.deskbox.Profile
 import org.mikhailzhdanov.deskbox.views.customTextField.CustomTextField
-import org.mikhailzhdanov.deskbox.views.TitledScrollView
 import org.mikhailzhdanov.deskbox.views.TitledView
 import org.mikhailzhdanov.deskbox.views.customTextField.CustomTextFieldType
 
@@ -46,27 +48,146 @@ fun EditProfileScreen(
     val viewModel = remember { EditProfileViewModel(profile, saveSuccessHandler) }
     val state by viewModel.uiState.collectAsState()
 
-    TitledScrollView(
+    TitledView(
         title = if (viewModel.isEditingExistingProfile) "Edit profile" else "Create profile",
-        scrollState = rememberScrollState(),
-        bottomContent = {
+    ) {
+        Column(
+            modifier = Modifier.fillMaxHeight()
+        ) {
+            RowContainer {
+                Text("Name")
+
+                CustomTextField(
+                    value = state.profile.name,
+                    onValueChange = { value ->
+                        viewModel.setName(value)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp),
+                    maxLength = 200,
+                    placeholder = "Required",
+                    leftAligned = false
+                )
+            }
+
+            Separator()
+
+            RowContainer {
+                Text("Remote config")
+                Spacer(modifier = Modifier.weight(1f))
+
+                Switch(
+                    checked = state.profile.isRemote,
+                    onCheckedChange = {
+                        viewModel.setIsRemote(it)
+                    }
+                )
+            }
+
+            Separator()
+
+            if (state.profile.isRemote) {
+                RowContainer {
+                    Text("Remote config URL")
+
+                    CustomTextField(
+                        value = state.profile.remoteURL,
+                        onValueChange = { value ->
+                            viewModel.setRemoteURL(value)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 8.dp),
+                        maxLength = 200,
+                        placeholder = "Required",
+                        leftAligned = false
+                    )
+                }
+
+                Separator()
+
+                RowContainer {
+                    Text("Auto update")
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Switch(
+                        checked = state.profile.autoUpdate,
+                        onCheckedChange = {
+                            viewModel.setAutoUpdate(it)
+                        }
+                    )
+                }
+
+                Separator()
+
+                if (state.profile.autoUpdate) {
+                    RowContainer {
+                        Text("Auto update interval")
+
+                        CustomTextField(
+                            value = state.profile.autoUpdateInterval?.toString() ?: "",
+                            onValueChange = { value ->
+                                viewModel.setAutoUpdateInterval(value.toLongOrNull())
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 8.dp),
+                            maxLength = 6,
+                            placeholder = "Required",
+                            leftAligned = false,
+                            inputFilter = { input ->
+                                val digits = input.filter { it.isDigit() }
+                                val number = digits.toLongOrNull() ?: 0
+                                if (number > 0) number.toString() else ""
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
             Row(
-                modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp),
+                modifier = Modifier.padding(top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = state.errorMessage,
-                    color = MaterialTheme.colorScheme.error
-                )
+                if (state.isConfigInvalid) {
+                    Text(
+                        text = viewModel.invalidConfigTitle,
+                        color = MaterialTheme.colorScheme.error
+                    )
+
+                    FilledTonalIconButton(
+                        onClick = { viewModel.showConfigErrorAlert() },
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.QuestionMark,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                Button(
-                    onClick = {
-                        viewModel.showEditConfigDialog()
+                if (state.configButtonMode != ConfigButtonMode.None) {
+                    FilledTonalButton(
+                        onClick = {
+                            viewModel.showConfigDialog()
+                        }
+                    ) {
+                        Text(
+                            text = when (state.configButtonMode) {
+                                ConfigButtonMode.Edit -> "Edit config"
+                                ConfigButtonMode.View -> "View config"
+                                else -> ""
+                            }
+                        )
                     }
-                ) {
-                    Text("Edit config")
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -81,69 +202,38 @@ fun EditProfileScreen(
                 }
             }
         }
-    ) {
-        Column {
-            Row(
-                modifier = Modifier.height(48.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CustomTextField(
-                    value = state.profile.name,
-                    onValueChange = { value ->
-                        viewModel.setName(value)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLength = 200,
-                    placeholder = "Enter profile name"
-                )
-            }
-
-            HorizontalDivider(modifier = Modifier.alpha(0.25f))
-
-//            Row(
-//                modifier = Modifier.height(48.dp),
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                Text("Remote config")
-//                Spacer(modifier = Modifier.weight(1f))
-//
-//                Switch(
-//                    checked = state.profile.isRemote,
-//                    onCheckedChange = {
-//                        viewModel.setIsRemote(it)
-//                    }
-//                )
-//            }
-//
-//            HorizontalDivider(modifier = Modifier.alpha(0.25f))
-        }
     }
 
-    if (state.showEditConfigDialog) {
+    if (state.showConfigDialog) {
         Dialog(
-            onDismissRequest = { viewModel.hideEditConfigDialog() },
+            onDismissRequest = { viewModel.hideConfigDialog() },
             properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Box(
                 modifier = Modifier.padding(32.dp)
             ) {
-                TitledView("Edit config") {
+                val isEditMode = state.configButtonMode == ConfigButtonMode.Edit
+
+                TitledView(if (isEditMode) "Edit config" else "View config") {
                     CustomTextField(
-                        value = state.profile.config,
+                        value = if (isEditMode) state.profile.config else profile.config,
                         onValueChange = { value ->
-                            viewModel.setConfig(value)
+                            if (isEditMode) {
+                                viewModel.setConfig(value)
+                            }
                         },
-                        modifier = Modifier.fillMaxSize(),
-                        textStyle = TextStyle.Default.copy(
-                            fontSize = 12.sp,
-                            fontFamily = FontFamily.Monospace
-                        ),
-                        type = CustomTextFieldType.MultilineWithScrollbar
+                        modifier = Modifier.padding(top = 8.dp).fillMaxSize(),
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily.Monospace,
+                        type = CustomTextFieldType.MultilineWithScrollbar,
+                        inputFilter = { input ->
+                            if (isEditMode) input else profile.config
+                        }
                     )
                 }
 
                 IconButton(
-                    onClick = { viewModel.hideEditConfigDialog() },
+                    onClick = { viewModel.hideConfigDialog() },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
@@ -154,4 +244,21 @@ fun EditProfileScreen(
             }
         }
     }
+}
+
+@Composable
+private fun RowContainer(
+    content: @Composable () -> Unit
+) {
+    Row(
+        modifier = Modifier.height(48.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun Separator() {
+    HorizontalDivider(modifier = Modifier.alpha(0.25f))
 }

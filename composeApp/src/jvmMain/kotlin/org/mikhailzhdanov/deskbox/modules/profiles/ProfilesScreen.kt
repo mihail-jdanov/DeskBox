@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenuItem
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -34,9 +36,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import org.mikhailzhdanov.deskbox.modules.editProfile.EditProfileScreen
+import org.mikhailzhdanov.deskbox.tools.TimestampFormatter
 import org.mikhailzhdanov.deskbox.views.TitledScrollView
 
 private val scrollState = ScrollState(0)
@@ -60,14 +64,45 @@ fun ProfilesScreen() {
                         modifier = Modifier.height(48.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = profile.name,
+                        Column(
                             modifier = Modifier
                                 .padding(end = 8.dp)
-                                .weight(1f),
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 1
-                        )
+                                .weight(1f)
+                        ) {
+                            val showDate = profile.isRemote && profile.lastUpdateTimestamp > 0
+
+                            Text(
+                                text = profile.name,
+                                modifier = Modifier.offset(y = (if (showDate) 3 else 0).dp),
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1
+                            )
+
+                            if (showDate) {
+                                val date = TimestampFormatter.format(
+                                    profile.lastUpdateTimestamp
+                                )
+
+                                Text(
+                                    text = "Last config update: $date",
+                                    modifier = Modifier
+                                        .alpha(0.5f)
+                                        .offset(y = (-3).dp),
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+
+                        if (profile.isRemote) {
+                            IconButton(
+                                onClick = { viewModel.updateProfileConfig(profile) },
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                                    .size(32.dp)
+                            ) {
+                                Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
+                            }
+                        }
 
                         Box {
                             var expanded by remember { mutableStateOf(false) }
@@ -144,7 +179,7 @@ fun ProfilesScreen() {
             properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Box(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 175.dp)
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
             ) {
                 EditProfileScreen(
                     profile = profile,

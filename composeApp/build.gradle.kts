@@ -49,7 +49,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Exe)
             packageName = "org.mikhailzhdanov.deskbox"
-            packageVersion = "1.0.0"
+            packageVersion = "1.1.0"
         }
     }
 }
