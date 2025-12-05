@@ -1,5 +1,4 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import ir.mahozad.manifest.ManifestMode
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -7,7 +6,6 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
 
-    id("ir.mahozad.compose-exe-manifest") version "1.0.0"
     kotlin("plugin.serialization") version "2.2.20"
 }
 
@@ -47,15 +45,10 @@ compose.desktop {
         }
 
         nativeDistributions {
+            modules("java.net.http")
             targetFormats(TargetFormat.Exe)
-            packageName = "org.mikhailzhdanov.deskbox"
-            packageVersion = "1.1.0"
+            packageName = "DeskBox"
+            packageVersion = "1.1.1"
         }
     }
-}
-
-composeExeManifest {
-    enabled = true
-    manifestMode = ManifestMode.EMBED
-    manifestFile = file("app.manifest")
 }
