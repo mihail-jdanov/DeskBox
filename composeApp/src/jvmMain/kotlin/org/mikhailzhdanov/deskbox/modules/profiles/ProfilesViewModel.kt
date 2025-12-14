@@ -7,9 +7,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mikhailzhdanov.deskbox.Profile
+import org.mikhailzhdanov.deskbox.managers.AlertsManager
 import org.mikhailzhdanov.deskbox.managers.ProfilesManager
 import org.mikhailzhdanov.deskbox.managers.SingBoxManager
-import org.mikhailzhdanov.deskbox.modules.appContainer.appContainerViewModel
 import org.mikhailzhdanov.deskbox.tools.RemoteConfigsFetcher
 import org.mikhailzhdanov.deskbox.tools.TimestampFormatter
 
@@ -28,13 +28,26 @@ class ProfilesViewModel: ViewModel() {
 
     init {
         viewModelScope.launch {
-            ProfilesManager.profiles.collect { profiles ->
-                _uiState.update { it.copy(profiles = profiles) }
+            launch {
+                ProfilesManager.profiles.collect { profiles ->
+                    _uiState.update { it.copy(profiles = profiles) }
+                }
+            }
+            launch {
+                ProfilesManager.profileToImport.collect { profileToImport ->
+                    profileToImport?.let { profile ->
+                        showEditProfileDialog(profile)
+                    }
+                }
             }
         }
     }
 
     fun showEditProfileDialog(profile: Profile = Profile()) {
+        if (SingBoxManager.version.value.startsWith(SingBoxManager.ERROR_PREFIX)) {
+            AlertsManager.setAlert(SingBoxManager.version.value)
+            return
+        }
         _uiState.update { it.copy(profileForEditing = profile) }
     }
 
@@ -59,11 +72,11 @@ class ProfilesViewModel: ViewModel() {
 
     fun updateProfileConfig(profile: Profile) {
         if (!profile.isRemote) return
-        appContainerViewModel.setLoading(true)
+        AlertsManager.setLoading(true)
         viewModelScope.launch {
             try {
                 val config = RemoteConfigsFetcher.fetchConfig(profile.remoteURL)
-                appContainerViewModel.setLoading(false)
+                AlertsManager.setLoading(false)
                 val configError = SingBoxManager.validateConfig(config)
                 if (configError.isEmpty()) {
                     val updatedProfile = profile.copy(
@@ -72,13 +85,13 @@ class ProfilesViewModel: ViewModel() {
                     )
                     ProfilesManager.saveProfile(updatedProfile)
                 } else {
-                    appContainerViewModel.setAlertText(
+                    AlertsManager.setAlert(
                         "Invalid config\n\n$configError"
                     )
                 }
             } catch (e: Exception) {
-                appContainerViewModel.setLoading(false)
-                appContainerViewModel.setAlertText(e.message ?: "")
+                AlertsManager.setLoading(false)
+                AlertsManager.setAlert(e.message ?: "")
             }
         }
     }

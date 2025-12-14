@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.mikhailzhdanov.deskbox.LogLine
 import org.mikhailzhdanov.deskbox.Profile
+import org.mikhailzhdanov.deskbox.tools.ConfigTunPatcher
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -17,13 +19,13 @@ object SingBoxManager {
     private const val CORE_FILE_NAME = "sing-box.exe"
     private const val CONFIG_FILE_NAME = "config.json"
     private const val CONFIG_TEMP_FILE_NAME = "config_temp.json"
-    private const val MAX_LOG_LINES = 1000
+    private const val MAX_LOG_LINES = 300
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val coreFile = File(CORE_FILE_NAME)
     private val configFile = File(CONFIG_FILE_NAME)
     private var configTempFile = File(CONFIG_TEMP_FILE_NAME)
-    private val _logs = MutableStateFlow("")
+    private val _logs = MutableStateFlow(emptyList<LogLine>())
     private val _isRunning = MutableStateFlow(false)
     private val _version = MutableStateFlow("")
 
@@ -46,18 +48,22 @@ object SingBoxManager {
     fun start(profile: Profile) {
         if (_isRunning.value) return
         killExistingCore()
-        configFile.writeText(profile.config)
+//        val config = configWithoutPlatformSpecificKeys(profile.config)
+//        configFile.writeText(config)
+        val config = ConfigTunPatcher.patchTunInterfaceName(profile.config)
+        configFile.writeText(config)
         process = ProcessBuilder(coreFile.absolutePath, "run", "-c", configFile.absolutePath)
             .redirectErrorStream(true)
             .start()
-        _logs.value = ""
+        _logs.value = emptyList()
         _isRunning.value = true
         RemoteConfigsManager.startConfigUpdates(profile)
         lastStartedProfile = profile
+        logJob?.cancel()
         logJob = scope.launch(Dispatchers.IO) {
             process?.inputStream?.bufferedReader()?.useLines { lines ->
-                lines.forEach {
-                    appendLog(it)
+                lines.forEach { line ->
+                    appendLog(line)
                 }
             }
             process?.waitFor()
@@ -71,13 +77,10 @@ object SingBoxManager {
     fun stop() {
         if (!_isRunning.value) return
         process?.destroy()
-        process = null
-        logJob?.cancel()
-        _isRunning.value = false
-        RemoteConfigsManager.stopConfigUpdates()
     }
 
     fun validateConfig(config: String): String {
+//        val config = configWithoutPlatformSpecificKeys(config)
         configTempFile.writeText(config)
         val process = ProcessBuilder(coreFile.absolutePath, "check", "-c", configTempFile.absolutePath)
             .redirectErrorStream(true)
@@ -105,19 +108,16 @@ object SingBoxManager {
     }
 
     private fun appendLog(line: String) {
-        val currentLines = _logs.value.lines()
-        val trimmed = if (currentLines.size >= MAX_LOG_LINES) {
-            currentLines.takeLast(MAX_LOG_LINES - 1)
-        } else {
-            currentLines
-        }
-        _logs.value = (trimmed + line).joinToString("\n").trim()
+        if (line.trim().isEmpty()) return
+        val logLine = LogLine(value = line)
+        val newLines = (_logs.value + logLine).takeLast(MAX_LOG_LINES)
+        _logs.value = newLines
     }
 
     private fun killExistingCore() {
         ProcessHandle.allProcesses()
             .filter { it.info().command().orElse("").endsWith(CORE_FILE_NAME) }
-            .forEach { it.destroyForcibly() }
+            .forEach { it.destroy() }
     }
 
     private fun fetchVersion() {
@@ -137,5 +137,35 @@ object SingBoxManager {
             }
         }
     }
+
+//    private fun configWithoutPlatformSpecificKeys(config: String): String {
+//        val updConfig = configWithoutParamInRoute(
+//            config = config,
+//            paramName = "override_android_vpn" // Android only key
+//        )
+//        return configWithoutParamInRoute(
+//            config = updConfig,
+//            paramName = "default_mark" // Linux only key
+//        )
+//    }
+//
+//    private fun configWithoutParamInRoute(config: String, paramName: String): String {
+//        if (!config.contains(paramName)) return config
+//        try {
+//            val root = Json.parseToJsonElement(config)
+//            if (root !is JsonObject) return config
+//            val route = root["route"]
+//            if (route !is JsonObject) return config
+//            val updatedRoute = JsonObject(route.filterKeys { it != paramName })
+//            val updatedRoot = JsonObject(
+//                root.toMutableMap().apply {
+//                    put("route", updatedRoute)
+//                }
+//            )
+//            return Json.encodeToString(JsonElement.serializer(), updatedRoot)
+//        } catch (e: Exception) {
+//            return config
+//        }
+//    }
 
 }

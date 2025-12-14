@@ -7,13 +7,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.mikhailzhdanov.deskbox.Profile
-import org.mikhailzhdanov.deskbox.modules.appContainer.appContainerViewModel
 import org.mikhailzhdanov.deskbox.tools.RemoteConfigsFetcher
 import org.mikhailzhdanov.deskbox.tools.TimestampFormatter
 
 object RemoteConfigsManager {
 
-    private const val jobInterval: Long = 60
+    private const val JOB_INTERVAL: Long = 60
 
     private var job: Job? = null
 
@@ -31,7 +30,7 @@ object RemoteConfigsManager {
                 } else {
                     stopConfigUpdates()
                 }
-                delay(jobInterval * 1000)
+                delay(JOB_INTERVAL * 1000)
             }
         }
     }
@@ -62,7 +61,6 @@ object RemoteConfigsManager {
                                 lastUpdateTimestamp = currentTimestamp
                             )
                         )
-                        appContainerViewModel.setAlertText("Config updated")
                     } else {
                         stopConfigUpdates()
                     }

@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import org.mikhailzhdanov.deskbox.Profile
 import org.mikhailzhdanov.deskbox.modules.editProfile.EditProfileScreen
 import org.mikhailzhdanov.deskbox.tools.TimestampFormatter
 import org.mikhailzhdanov.deskbox.views.TitledScrollView

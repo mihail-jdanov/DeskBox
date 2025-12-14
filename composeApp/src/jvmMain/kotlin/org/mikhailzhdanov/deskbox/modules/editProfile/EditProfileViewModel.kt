@@ -6,14 +6,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.mikhailzhdanov.deskbox.Profile
+import org.mikhailzhdanov.deskbox.managers.AlertsManager
 import org.mikhailzhdanov.deskbox.managers.ProfilesManager
 import org.mikhailzhdanov.deskbox.tools.RemoteConfigsFetcher
 import org.mikhailzhdanov.deskbox.managers.SingBoxManager
-import org.mikhailzhdanov.deskbox.modules.appContainer.appContainerViewModel
+import org.mikhailzhdanov.deskbox.tools.JsonFormatter
 import org.mikhailzhdanov.deskbox.tools.TimestampFormatter
 
 class EditProfileViewModel(
@@ -34,12 +32,6 @@ class EditProfileViewModel(
     private val nameMaxChars = 200
     private val defaultConfig = "{}"
     private val defaultAutoUpdateInterval: Long = 60
-
-    @OptIn(ExperimentalSerializationApi::class)
-    private val json = Json {
-        prettyPrint = true
-        prettyPrintIndent = "  "
-    }
 
     val uiState = _uiState.asStateFlow()
 
@@ -102,7 +94,7 @@ class EditProfileViewModel(
 
     fun hideConfigDialog() {
         _uiState.update { it.copy(showConfigDialog = false) }
-        formatConfig()
+        setConfig(JsonFormatter.formatJson(_uiState.value.profile.config))
         validateConfig()
         validateProfile()
     }
@@ -111,21 +103,21 @@ class EditProfileViewModel(
         val configError = SingBoxManager.validateConfig(
             _uiState.value.profile.config
         )
-        appContainerViewModel.setAlertText(invalidConfigTitle + "\n\n" + configError)
+        AlertsManager.setAlert(invalidConfigTitle + "\n\n" + configError)
     }
 
     fun save() {
         fun getProfile(): Profile { return _uiState.value.profile }
         if (getProfile().isRemote) {
             val isURLChanged = getProfile().remoteURL != profile.remoteURL
-            if (isURLChanged) {
-                appContainerViewModel.setLoading(true)
+            if (isURLChanged || profile.config.isEmpty()) {
+                AlertsManager.setLoading(true)
                 viewModelScope.launch {
                     try {
                         val config = RemoteConfigsFetcher.fetchConfig(
                             getProfile().remoteURL
                         )
-                        appContainerViewModel.setLoading(false)
+                        AlertsManager.setLoading(false)
                         val configError = SingBoxManager.validateConfig(config)
                         if (configError.isEmpty()) {
                             setConfig(config)
@@ -134,13 +126,13 @@ class EditProfileViewModel(
                             )
                             completeSaving()
                         } else {
-                            appContainerViewModel.setAlertText(
+                            AlertsManager.setAlert(
                                 invalidConfigTitle + "\n\n" + configError
                             )
                         }
                     } catch (e: Exception) {
-                        appContainerViewModel.setLoading(false)
-                        appContainerViewModel.setAlertText(e.message ?: "")
+                        AlertsManager.setLoading(false)
+                        AlertsManager.setAlert(e.message ?: "")
                     }
                 }
             } else {
@@ -198,21 +190,10 @@ class EditProfileViewModel(
         _uiState.update { it.copy(isConfigInvalid = !isValid) }
     }
 
-    private fun formatConfig() {
-        try {
-            val config = _uiState.value.profile.config
-            val jsonElement = Json.parseToJsonElement(config)
-            val formattedConfig = json.encodeToString(jsonElement)
-            setConfig(formattedConfig)
-        } catch (e: Exception) {
-            // Do nothing
-        }
-    }
-
     private fun getConfigButtonMode(isRemote: Boolean): ConfigButtonMode {
         return if (!isRemote) {
             ConfigButtonMode.Edit
-        } else if (profile.remoteURL.isNotEmpty()) {
+        } else if (profile.remoteURL.isNotEmpty() && profile.config.isNotEmpty()) {
             ConfigButtonMode.View
         } else {
             ConfigButtonMode.None

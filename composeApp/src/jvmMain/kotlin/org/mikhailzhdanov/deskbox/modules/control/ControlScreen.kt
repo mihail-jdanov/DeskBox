@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,10 +51,11 @@ private val logsScrollState = ScrollState(0)
 fun ControlScreen() {
     val viewModel = remember { ControlViewModel() }
     val state by viewModel.uiState.collectAsState()
+    val logs by viewModel.logs.collectAsState()
 
     if (state.isRunning) {
-        LaunchedEffect(state.logs) {
-            logsScrollState.animateScrollTo(logsScrollState.maxValue)
+        LaunchedEffect(logs) {
+            logsScrollState.scrollTo(logsScrollState.maxValue)
         }
     }
 
@@ -158,16 +160,22 @@ fun ControlScreen() {
             scrollState = logsScrollState
         ) {
             SelectionContainer {
-                Text(
-                    text = parseAnsiToAnnotatedString(state.logs),
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .fillMaxWidth(),
-                    style = TextStyle.Default.copy(
-                        fontSize = 12.sp,
-                        fontFamily = FontFamily.Monospace
-                    )
-                )
+                Column {
+                    logs.forEach { line ->
+                        key(line.id) {
+                            Text(
+                                text = parseAnsiToAnnotatedString(line.value),
+                                modifier = Modifier
+                                    .padding(top = 8.dp)
+                                    .fillMaxWidth(),
+                                style = TextStyle.Default.copy(
+                                    fontSize = 12.sp,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -193,7 +201,7 @@ fun parseAnsiToAnnotatedString(text: String): AnnotatedString {
                 "\u001B[31m" -> currentColor = MaterialTheme.colorScheme.error
                 "\u001B[32m" -> currentColor = Color.success
                 "\u001B[33m" -> currentColor = Color.warning
-                "\u001B[0m"  -> currentColor = Color.Black
+                "\u001B[0m"  -> currentColor = MaterialTheme.colorScheme.onBackground
             }
 
             lastIndex = match.range.last + 1

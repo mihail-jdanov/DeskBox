@@ -4,7 +4,6 @@ import org.mikhailzhdanov.deskbox.Profile
 
 data class ControlUIState(
     val isRunning: Boolean,
-    val logs: String,
     val version: String,
     val isStartAvailable: Boolean,
     val isVersionError: Boolean,

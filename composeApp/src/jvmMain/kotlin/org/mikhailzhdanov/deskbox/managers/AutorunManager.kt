@@ -5,7 +5,7 @@ import java.nio.charset.Charset
 
 object AutorunManager {
 
-    private val pathToExecutable = ProcessHandle.current()
+    val pathToExecutable = ProcessHandle.current()
         .info()
         .command()
         .orElse(null)

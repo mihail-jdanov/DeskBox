@@ -10,15 +10,16 @@ import java.time.Duration
 
 object RemoteConfigsFetcher {
 
-    private const val TIMEOUT: Long = 10
+    private const val TIMEOUT_INTERVAL: Long = 10
 
     suspend fun fetchConfig(url: String): String = withContext(Dispatchers.IO) {
         val client = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(TIMEOUT))
+            .connectTimeout(Duration.ofSeconds(TIMEOUT_INTERVAL))
             .build()
         val request = HttpRequest.newBuilder()
             .uri(URI(url))
-            .timeout(Duration.ofSeconds(TIMEOUT))
+            .timeout(Duration.ofSeconds(TIMEOUT_INTERVAL))
+            .header("User-Agent", "SFM")
             .GET()
             .build()
         try {

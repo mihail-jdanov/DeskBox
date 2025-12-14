@@ -19,9 +19,11 @@ import org.mikhailzhdanov.deskbox.managers.AutorunManager
 import org.mikhailzhdanov.deskbox.managers.ProfilesManager
 import org.mikhailzhdanov.deskbox.managers.SettingsManager
 import org.mikhailzhdanov.deskbox.managers.SingBoxManager
-import org.mikhailzhdanov.deskbox.modules.appContainer.AppContainerScreen
-import org.mikhailzhdanov.deskbox.modules.menu.MenuScreen
+import org.mikhailzhdanov.deskbox.modules.main.MainScreen
 import org.mikhailzhdanov.deskbox.modules.tray.TrayMenu
+import java.awt.Frame
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
 
 private val windowState = WindowState(
     position = SettingsManager.loadWindowPosition(),
@@ -31,15 +33,19 @@ private val windowState = WindowState(
 
 private var composeWindow: ComposeWindow? = null
 
-fun main() = application {
+fun main(args: Array<String>) = application {
     val minimizeOnLaunch = SettingsManager.minimizeOnLaunch.value
     var windowVisible by remember { mutableStateOf(!minimizeOnLaunch) }
     val windowIcon = painterResource(Res.drawable.tray_icon)
 
     val isSingleInstance = SingleInstanceManager.isSingleInstance(
+        onRestoreFileCreated = {
+            args.firstOrNull()?.let(::writeText)
+        },
         onRestoreRequest = {
             windowVisible = true
-            composeWindow?.requestFocus()
+            restoreAndFocusWindow()
+            ProfilesManager.importRemoteProfile(readText())
         }
     )
 
@@ -61,12 +67,13 @@ fun main() = application {
         if (SettingsManager.launchWithSystem.value != isTaskActive) {
             SettingsManager.setLaunchWithSystem(isTaskActive)
         }
+        registerSingBoxLinks()
     }
 
     TrayMenu(
         showWindowHandler = {
             windowVisible = true
-            composeWindow?.requestFocus()
+            restoreAndFocusWindow()
         },
         exitHandler = {
             SingBoxManager.stop()
@@ -75,26 +82,45 @@ fun main() = application {
         }
     )
 
-    if (windowVisible) {
-        Window(
-            onCloseRequest = {
-                SettingsManager.saveWindowPosition(windowState.position)
-                windowVisible = false
-            },
-            state = windowState,
-            title = "DeskBox",
-            icon = windowIcon,
-            resizable = false
-        ) {
-            composeWindow = window
+    Window(
+        onCloseRequest = {
+            SettingsManager.saveWindowPosition(windowState.position)
+            windowVisible = false
+        },
+        state = windowState,
+        visible = windowVisible,
+        title = "DeskBox",
+        icon = windowIcon,
+        resizable = false
+    ) {
+        composeWindow = window
 
-            MaterialTheme(
-                colorScheme = colorScheme
-            ) {
-                AppContainerScreen {
-                    MenuScreen()
-                }
-            }
+        MaterialTheme(
+            colorScheme = colorScheme
+        ) {
+            MainScreen()
         }
     }
+}
+
+private fun restoreAndFocusWindow() {
+    composeWindow?.apply {
+        if (extendedState == Frame.ICONIFIED) {
+            extendedState = Frame.NORMAL
+        }
+        toFront()
+        requestFocus()
+    }
+}
+
+private fun registerSingBoxLinks() {
+    ProcessBuilder(
+        "reg", "add", "HKEY_CURRENT_USER\\Software\\Classes\\sing-box",
+        "/f", "/v", "URL Protocol", "/d", ""
+    ).start().waitFor()
+    ProcessBuilder(
+        "reg", "add",
+        "HKEY_CURRENT_USER\\Software\\Classes\\sing-box\\shell\\open\\command",
+        "/f", "/ve", "/d", "${AutorunManager.pathToExecutable} \"\"%1\"\""
+    ).start().waitFor()
 }

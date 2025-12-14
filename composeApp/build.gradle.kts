@@ -39,6 +39,7 @@ kotlin {
 compose.desktop {
     application {
         mainClass = "org.mikhailzhdanov.deskbox.MainKt"
+//        jvmArgs += "-Dskiko.forceSoftwareRendering=true"
 
         buildTypes.release.proguard {
             isEnabled = false
@@ -48,7 +49,7 @@ compose.desktop {
             modules("java.net.http")
             targetFormats(TargetFormat.Exe)
             packageName = "DeskBox"
-            packageVersion = "1.1.1"
+            packageVersion = "1.1.2"
         }
     }
 }

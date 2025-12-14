@@ -17,7 +17,6 @@ class ControlViewModel: ViewModel() {
     private val _uiState = MutableStateFlow(
         ControlUIState(
             isRunning = SingBoxManager.isRunning.value,
-            logs = SingBoxManager.logs.value,
             version = SingBoxManager.version.value,
             isStartAvailable = !SingBoxManager.version.value.startsWith(SingBoxManager.ERROR_PREFIX)
                     && fetchSelectedProfile(SettingsManager.selectedProfileID.value) != null,
@@ -28,30 +27,38 @@ class ControlViewModel: ViewModel() {
         )
     )
 
+    private val _logs = MutableStateFlow(SingBoxManager.logs.value)
+
     val uiState = _uiState.asStateFlow()
+    val logs = _logs.asStateFlow()
 
     init {
         viewModelScope.launch {
-            combine(
-                SingBoxManager.isRunning,
-                SingBoxManager.logs,
-                SingBoxManager.version,
-                ProfilesManager.profiles,
-                SettingsManager.selectedProfileID
-            ) { isRunning, logs, version, profiles, selectedProfileID ->
-                ObservedValues(isRunning, logs, version, profiles, selectedProfileID)
-            }.collect { values ->
-                _uiState.update { current ->
-                    current.copy(
-                        isRunning = values.isRunning,
-                        logs = values.logs,
-                        version = values.version,
-                        isStartAvailable = !values.version.startsWith(SingBoxManager.ERROR_PREFIX)
-                                && fetchSelectedProfile(values.selectedProfileID) != null,
-                        isVersionError = values.version.startsWith(SingBoxManager.ERROR_PREFIX),
-                        profiles = values.profiles,
-                        selectedProfile = fetchSelectedProfile(values.selectedProfileID)
-                    )
+            launch {
+                combine(
+                    SingBoxManager.isRunning,
+                    SingBoxManager.version,
+                    ProfilesManager.profiles,
+                    SettingsManager.selectedProfileID
+                ) { isRunning, version, profiles, selectedProfileID ->
+                    ObservedValues(isRunning, version, profiles, selectedProfileID)
+                }.collect { values ->
+                    _uiState.update { current ->
+                        current.copy(
+                            isRunning = values.isRunning,
+                            version = values.version,
+                            isStartAvailable = !values.version.startsWith(SingBoxManager.ERROR_PREFIX)
+                                    && fetchSelectedProfile(values.selectedProfileID) != null,
+                            isVersionError = values.version.startsWith(SingBoxManager.ERROR_PREFIX),
+                            profiles = values.profiles,
+                            selectedProfile = fetchSelectedProfile(values.selectedProfileID)
+                        )
+                    }
+                }
+            }
+            launch {
+                SingBoxManager.logs.collect { logs ->
+                    _logs.value = logs
                 }
             }
         }
@@ -88,7 +95,6 @@ class ControlViewModel: ViewModel() {
 
 private data class ObservedValues(
     val isRunning: Boolean,
-    val logs: String,
     val version: String,
     val profiles: List<Profile>,
     val selectedProfileID: String
