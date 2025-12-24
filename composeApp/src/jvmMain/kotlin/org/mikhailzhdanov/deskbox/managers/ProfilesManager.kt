@@ -70,8 +70,9 @@ object ProfilesManager {
             if (SingBoxManager.isRunning.value
                 && SingBoxManager.lastStartedProfile?.id == profile.id
                 && oldProfile.config != profile.config) {
-                SingBoxManager.stop()
-                SingBoxManager.start(profile)
+                SingBoxManager.stop {
+                    SingBoxManager.start(profile)
+                }
             }
         }
     }

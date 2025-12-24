@@ -24,13 +24,14 @@ object SingBoxManager {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val coreFile = File(CORE_FILE_NAME)
     private val configFile = File(CONFIG_FILE_NAME)
-    private var configTempFile = File(CONFIG_TEMP_FILE_NAME)
+    private val configTempFile = File(CONFIG_TEMP_FILE_NAME)
     private val _logs = MutableStateFlow(emptyList<LogLine>())
     private val _isRunning = MutableStateFlow(false)
     private val _version = MutableStateFlow("")
 
     private var process: Process? = null
     private var logJob: Job? = null
+    private var stopCompletion: (() -> Unit)? = null
 
     const val ERROR_PREFIX = "Error:"
 
@@ -70,12 +71,20 @@ object SingBoxManager {
             withContext(Dispatchers.Main) {
                 _isRunning.value = false
                 RemoteConfigsManager.stopConfigUpdates()
+                stopCompletion?.let { completion ->
+                    completion()
+                    stopCompletion = null
+                }
             }
         }
     }
 
-    fun stop() {
-        if (!_isRunning.value) return
+    fun stop(completion: (() -> Unit)? = null) {
+        if (!_isRunning.value) {
+            completion?.let { it() }
+            return
+        }
+        stopCompletion = completion
         process?.destroy()
     }
 

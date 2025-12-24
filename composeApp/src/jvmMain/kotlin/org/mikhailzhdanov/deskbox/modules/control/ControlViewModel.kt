@@ -80,8 +80,9 @@ class ControlViewModel: ViewModel() {
 
     fun selectProfile(profile: Profile) {
         if (_uiState.value.isRunning && SettingsManager.selectedProfileID.value != profile.id) {
-            SingBoxManager.stop()
-            SingBoxManager.start(profile)
+            SingBoxManager.stop {
+                SingBoxManager.start(profile)
+            }
         }
         SettingsManager.setSelectedProfileID(profile.id)
     }
