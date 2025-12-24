@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,8 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import org.mikhailzhdanov.deskbox.Profile
 import org.mikhailzhdanov.deskbox.modules.editProfile.EditProfileScreen
+import org.mikhailzhdanov.deskbox.modules.profileQR.ProfileQRScreen
 import org.mikhailzhdanov.deskbox.tools.TimestampFormatter
 import org.mikhailzhdanov.deskbox.views.TitledScrollView
 
@@ -102,6 +103,15 @@ fun ProfilesScreen() {
                                     .size(32.dp)
                             ) {
                                 Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
+                            }
+
+                            IconButton(
+                                onClick = { viewModel.showQRCode(profile) },
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                                    .size(32.dp)
+                            ) {
+                                Icon(imageVector = Icons.Default.QrCode, contentDescription = null)
                             }
                         }
 
@@ -226,5 +236,28 @@ fun ProfilesScreen() {
                 }
             },
         )
+    }
+
+    state.profileForQRCode?.let { profile ->
+        Dialog(
+            onDismissRequest = { viewModel.hideQrCode() },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+            ) {
+                ProfileQRScreen(profile)
+
+                IconButton(
+                    onClick = { viewModel.hideQrCode() },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .size(24.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                }
+            }
+        }
     }
 }

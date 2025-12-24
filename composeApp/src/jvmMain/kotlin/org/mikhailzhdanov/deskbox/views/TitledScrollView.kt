@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -34,8 +35,11 @@ fun TitledScrollView(
             Text(
                 text = title,
                 modifier = Modifier
-                    .padding(8.dp),
-                fontWeight = FontWeight.Medium
+                    .padding(8.dp)
+                    .padding(end = 32.dp),
+                fontWeight = FontWeight.Medium,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1
             )
 
             HorizontalDivider(modifier = Modifier.alpha(0.5f))

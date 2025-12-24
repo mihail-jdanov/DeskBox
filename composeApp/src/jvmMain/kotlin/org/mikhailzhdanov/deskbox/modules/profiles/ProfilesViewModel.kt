@@ -19,7 +19,8 @@ class ProfilesViewModel: ViewModel() {
         ProfilesUIState(
             profiles = ProfilesManager.profiles.value,
             profileForEditing = null,
-            profileForDeletion = null
+            profileForDeletion = null,
+            profileForQRCode = null
         )
     )
 
@@ -94,6 +95,14 @@ class ProfilesViewModel: ViewModel() {
                 AlertsManager.setAlert(e.message ?: "")
             }
         }
+    }
+
+    fun showQRCode(profile: Profile) {
+        _uiState.update { it.copy(profileForQRCode = profile) }
+    }
+
+    fun hideQrCode() {
+        _uiState.update { it.copy(profileForQRCode = null) }
     }
 
 }

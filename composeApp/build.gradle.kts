@@ -32,6 +32,8 @@ kotlin {
             implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.7.3")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
             implementation("io.github.kdroidfilter:composenativetray:1.0.4")
+            implementation("com.google.zxing:core:3.5.2")
+            implementation("com.google.zxing:javase:3.5.2")
         }
     }
 }
@@ -49,7 +51,10 @@ compose.desktop {
             modules("java.net.http")
             targetFormats(TargetFormat.Exe)
             packageName = "DeskBox"
-            packageVersion = "1.1.2"
+            packageVersion = "1.1.3"
+            windows {
+                iconFile = project.file("resources/icon.ico")
+            }
         }
     }
 }

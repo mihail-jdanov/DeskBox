@@ -123,7 +123,7 @@ fun EditProfileScreen(
 
                 if (state.profile.autoUpdate) {
                     RowContainer {
-                        Text("Auto update interval")
+                        Text("Auto update interval (minutes)")
 
                         CustomTextField(
                             value = state.profile.autoUpdateInterval?.toString() ?: "",
