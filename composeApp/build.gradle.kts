@@ -32,8 +32,7 @@ kotlin {
             implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.7.3")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
             implementation("io.github.kdroidfilter:composenativetray:1.0.4")
-            implementation("com.google.zxing:core:3.5.2")
-            implementation("com.google.zxing:javase:3.5.2")
+            implementation("io.github.g0dkar:qrcode-kotlin:4.5.0")
         }
     }
 }

@@ -8,14 +8,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.toAwtImage
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.unit.dp
+import org.jetbrains.skia.Image
 import org.mikhailzhdanov.deskbox.Profile
-import org.mikhailzhdanov.deskbox.tools.QRGenerator
 import org.mikhailzhdanov.deskbox.views.TitledView
+import qrcode.QRCode
 import java.awt.Toolkit
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.DataFlavor
@@ -34,7 +39,14 @@ fun ProfileQRScreen(
         modifier = Modifier.width(250.dp)
     ) {
         val link = getSingBoxLink(profile)
-        val image = QRGenerator.generateQrCode(link)
+        val imageBytes = QRCode
+            .ofRoundedSquares()
+            .withSize(20)
+            .withMargin(10)
+            .withColor(MaterialTheme.colorScheme.primary.toArgb())
+            .withBackgroundColor(MaterialTheme.colorScheme.surface.toArgb())
+            .build(link).render().getBytes()
+        val image = Image.makeFromEncoded(imageBytes).toComposeImageBitmap().toAwtImage()
 
         Column(modifier = Modifier.padding(top = 8.dp)) {
             Image(
