@@ -3,8 +3,5 @@ package org.mikhailzhdanov.deskbox.modules.profiles
 import org.mikhailzhdanov.deskbox.Profile
 
 data class ProfilesUIState(
-    val profiles: List<Profile>,
-    val profileForEditing: Profile?,
-    val profileForDeletion: Profile?,
-    val profileForQRCode: Profile?
+    val profiles: List<Profile>
 )

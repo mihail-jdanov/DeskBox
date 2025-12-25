@@ -33,6 +33,7 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
             implementation("io.github.kdroidfilter:composenativetray:1.0.4")
             implementation("io.github.g0dkar:qrcode-kotlin:4.5.0")
+            implementation("com.github.Dansoftowner:jSystemThemeDetector:3.9.1")
         }
     }
 }
@@ -40,7 +41,6 @@ kotlin {
 compose.desktop {
     application {
         mainClass = "org.mikhailzhdanov.deskbox.MainKt"
-//        jvmArgs += "-Dskiko.forceSoftwareRendering=true"
 
         buildTypes.release.proguard {
             isEnabled = false
@@ -50,7 +50,7 @@ compose.desktop {
             modules("java.net.http")
             targetFormats(TargetFormat.Exe)
             packageName = "DeskBox"
-            packageVersion = "1.1.4"
+            packageVersion = "1.2.0"
             windows {
                 iconFile = project.file("resources/icon.ico")
             }

@@ -7,22 +7,23 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mikhailzhdanov.deskbox.Profile
-import org.mikhailzhdanov.deskbox.managers.AlertsManager
+import org.mikhailzhdanov.deskbox.managers.DialogsManager
 import org.mikhailzhdanov.deskbox.managers.ProfilesManager
 import org.mikhailzhdanov.deskbox.tools.RemoteConfigsFetcher
 import org.mikhailzhdanov.deskbox.managers.SingBoxManager
+import org.mikhailzhdanov.deskbox.modules.editConfig.EDIT_CONFIG_SCREEN_ID
+import org.mikhailzhdanov.deskbox.modules.editConfig.EditConfigScreen
 import org.mikhailzhdanov.deskbox.tools.JsonFormatter
 import org.mikhailzhdanov.deskbox.tools.TimestampFormatter
 
 class EditProfileViewModel(
     val profile: Profile,
-    val saveSuccessHandler: () -> Unit
+    val closeHandler: () -> Unit
 ): ViewModel() {
 
     private val _uiState = MutableStateFlow(
         EditProfileUIState(
             profile = profile,
-            showConfigDialog = false,
             isSaveAvailable = false,
             isConfigInvalid = false,
             configButtonMode = getConfigButtonMode(profile.isRemote)
@@ -89,11 +90,16 @@ class EditProfileViewModel(
     }
 
     fun showConfigDialog() {
-        _uiState.update { it.copy(showConfigDialog = true) }
+        DialogsManager.addDialog(
+            id = EDIT_CONFIG_SCREEN_ID,
+            onDismissRequest = { hideConfigDialog() }
+        ) {
+            EditConfigScreen(viewModel = this)
+        }
     }
 
     fun hideConfigDialog() {
-        _uiState.update { it.copy(showConfigDialog = false) }
+        DialogsManager.removeDialog(EDIT_CONFIG_SCREEN_ID)
         setConfig(JsonFormatter.formatJson(_uiState.value.profile.config))
         validateConfig()
         validateProfile()
@@ -103,7 +109,7 @@ class EditProfileViewModel(
         val configError = SingBoxManager.validateConfig(
             _uiState.value.profile.config
         )
-        AlertsManager.setAlert(invalidConfigTitle + "\n\n" + configError)
+        DialogsManager.setAlert(invalidConfigTitle + "\n\n" + configError)
     }
 
     fun save() {
@@ -111,13 +117,13 @@ class EditProfileViewModel(
         if (getProfile().isRemote) {
             val isURLChanged = getProfile().remoteURL != profile.remoteURL
             if (isURLChanged || profile.config.isEmpty()) {
-                AlertsManager.setLoading(true)
+                DialogsManager.setLoading(true)
                 viewModelScope.launch {
                     try {
                         val config = RemoteConfigsFetcher.fetchConfig(
                             getProfile().remoteURL
                         )
-                        AlertsManager.setLoading(false)
+                        DialogsManager.setLoading(false)
                         val configError = SingBoxManager.validateConfig(config)
                         if (configError.isEmpty()) {
                             setConfig(config)
@@ -126,13 +132,13 @@ class EditProfileViewModel(
                             )
                             completeSaving()
                         } else {
-                            AlertsManager.setAlert(
+                            DialogsManager.setAlert(
                                 invalidConfigTitle + "\n\n" + configError
                             )
                         }
                     } catch (e: Exception) {
-                        AlertsManager.setLoading(false)
-                        AlertsManager.setAlert(e.message ?: "")
+                        DialogsManager.setLoading(false)
+                        DialogsManager.setAlert(e.message ?: "")
                     }
                 }
             } else {
@@ -158,8 +164,12 @@ class EditProfileViewModel(
                 lastUpdateTimestamp = 0
             )
         }
+        newProfile = newProfile.copy(
+            name = newProfile.name.trim(),
+            remoteURL = newProfile.remoteURL.trim()
+        )
         ProfilesManager.saveProfile(newProfile)
-        saveSuccessHandler()
+        closeHandler()
     }
 
     private fun setLastUpdateTimestamp(timestamp: Long) {
@@ -170,9 +180,9 @@ class EditProfileViewModel(
 
     private fun validateProfile() {
         val profile = _uiState.value.profile
-        var isValid = profile.name.isNotEmpty()
+        var isValid = profile.name.trim().isNotEmpty()
         if (profile.isRemote) {
-            if (profile.remoteURL.isEmpty()) isValid = false
+            if (profile.remoteURL.trim().isEmpty()) isValid = false
             if (profile.autoUpdate) {
                 if ((profile.autoUpdateInterval ?: 0) <= 0) isValid = false
             }

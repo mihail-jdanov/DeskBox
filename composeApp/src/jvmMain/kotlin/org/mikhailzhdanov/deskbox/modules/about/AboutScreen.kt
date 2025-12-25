@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import deskbox.composeapp.generated.resources.Res
 import deskbox.composeapp.generated.resources.app_icon
 import org.jetbrains.compose.resources.painterResource
+import org.mikhailzhdanov.deskbox.APP_NAME
 import org.mikhailzhdanov.deskbox.views.TitledView
 import java.awt.Desktop
 import java.net.URI
@@ -37,7 +38,7 @@ fun AboutScreen() {
                 )
 
                 Text(
-                    text = "DeskBox",
+                    text = APP_NAME,
                     modifier = Modifier.padding(top = 16.dp),
                     fontWeight = FontWeight.Medium
                 )

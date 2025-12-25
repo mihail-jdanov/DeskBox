@@ -1,7 +1,7 @@
 package org.mikhailzhdanov.deskbox.modules.tray
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.Icon
+import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
@@ -16,6 +16,7 @@ import com.kdroid.composetray.utils.isMenuBarInDarkMode
 import deskbox.composeapp.generated.resources.Res
 import deskbox.composeapp.generated.resources.tray_item_placeholder
 import org.jetbrains.compose.resources.painterResource
+import org.mikhailzhdanov.deskbox.APP_NAME
 
 @Composable
 fun ApplicationScope.TrayMenu(
@@ -27,7 +28,7 @@ fun ApplicationScope.TrayMenu(
 
     Tray(
         icon = painterResource(state.icon),
-        tooltip = "DeskBox",
+        tooltip = APP_NAME,
         primaryAction = showWindowHandler,
         menuContent = {
             Item(

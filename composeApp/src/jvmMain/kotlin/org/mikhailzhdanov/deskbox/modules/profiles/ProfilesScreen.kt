@@ -14,18 +14,14 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,16 +34,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import org.mikhailzhdanov.deskbox.modules.editProfile.EditProfileScreen
-import org.mikhailzhdanov.deskbox.modules.profileQR.ProfileQRScreen
 import org.mikhailzhdanov.deskbox.tools.TimestampFormatter
 import org.mikhailzhdanov.deskbox.views.TitledScrollView
 
 private val scrollState = ScrollState(0)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfilesScreen() {
     val viewModel = remember { ProfilesViewModel() }
@@ -180,83 +171,6 @@ fun ProfilesScreen() {
                     .padding(16.dp),
             ) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
-            }
-        }
-    }
-
-    state.profileForEditing?.let { profile ->
-        Dialog(
-            onDismissRequest = { viewModel.hideEditProfileDialog() },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            Box(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-            ) {
-                EditProfileScreen(
-                    profile = profile,
-                    saveSuccessHandler = {
-                        viewModel.hideEditProfileDialog()
-                    }
-                )
-
-                IconButton(
-                    onClick = { viewModel.hideEditProfileDialog() },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .size(24.dp)
-                ) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = null)
-                }
-            }
-        }
-    }
-
-    state.profileForDeletion?.let { profile ->
-        AlertDialog(
-            onDismissRequest = { viewModel.hideDeleteProfileDialog() },
-            text = {
-                Text("Delete profile \"${profile.name}\"?")
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.hideDeleteProfileDialog()
-                        viewModel.deleteProfile(profile)
-                    }
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { viewModel.hideDeleteProfileDialog() }
-                ) {
-                    Text("Cancel")
-                }
-            },
-        )
-    }
-
-    state.profileForQRCode?.let { profile ->
-        Dialog(
-            onDismissRequest = { viewModel.hideQrCode() },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            Box(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-            ) {
-                ProfileQRScreen(profile)
-
-                IconButton(
-                    onClick = { viewModel.hideQrCode() },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .size(24.dp)
-                ) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = null)
-                }
             }
         }
     }

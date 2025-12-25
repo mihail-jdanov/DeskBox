@@ -115,7 +115,7 @@ object ProfilesManager {
                 remoteURL = url
             )
             val host = host ?: "remote resource"
-            AlertsManager.setAlert(
+            DialogsManager.setAlert(
                 AlertData(
                     text = "Import remote profile \"$name\"?\n\nYou will connect to $host to download the configuration.",
                     confirmButtonData = AlertButtonData(

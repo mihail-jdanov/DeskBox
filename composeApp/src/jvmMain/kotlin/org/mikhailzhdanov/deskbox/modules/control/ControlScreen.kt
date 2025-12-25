@@ -18,6 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -201,7 +202,7 @@ fun parseAnsiToAnnotatedString(text: String): AnnotatedString {
                 "\u001B[31m" -> currentColor = MaterialTheme.colorScheme.error
                 "\u001B[32m" -> currentColor = Color.success
                 "\u001B[33m" -> currentColor = Color.warning
-                "\u001B[0m"  -> currentColor = MaterialTheme.colorScheme.onBackground
+                else -> currentColor = LocalContentColor.current
             }
 
             lastIndex = match.range.last + 1

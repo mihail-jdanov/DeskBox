@@ -11,12 +11,13 @@ import java.util.prefs.Preferences
 
 object SettingsManager {
 
-    private const val WINDOW_POSITION_X = "windowPositionX"
-    private const val WINDOW_POSITION_Y = "windowPositionY"
+    private const val WINDOW_POSITION_X_KEY = "windowPositionX"
+    private const val WINDOW_POSITION_Y_KEY = "windowPositionY"
     private const val SELECTED_PROFILE_ID_KEY = "selectedProfileID"
-    private const val AUTOSTART_PROFILE = "autostartProfile"
-    private const val LAUNCH_WITH_SYSTEM = "launchWithSystem"
+    private const val AUTOSTART_PROFILE_KEY = "autostartProfile"
+    private const val LAUNCH_WITH_SYSTEM_KEY = "launchWithSystem"
     private const val MINIMIZE_ON_LAUNCH_KEY = "minimizeOnLaunch"
+    private const val PREFERRED_THEME_KEY = "preferredTheme"
 
     private val prefs = Preferences.userRoot().node("DeskBox")
 
@@ -25,15 +26,19 @@ object SettingsManager {
     )
 
     private val _autostartProfile = MutableStateFlow(
-        prefs.getBoolean(AUTOSTART_PROFILE, false)
+        prefs.getBoolean(AUTOSTART_PROFILE_KEY, false)
     )
 
     private val _launchWithSystem = MutableStateFlow(
-        prefs.getBoolean(LAUNCH_WITH_SYSTEM, false)
+        prefs.getBoolean(LAUNCH_WITH_SYSTEM_KEY, false)
     )
 
     private val _minimizeOnLaunch = MutableStateFlow(
         prefs.getBoolean(MINIMIZE_ON_LAUNCH_KEY, false)
+    )
+
+    private val _preferredTheme = MutableStateFlow(
+        prefs.getInt(PREFERRED_THEME_KEY, 0)
     )
 
     val windowSize = Size(720f, 540f)
@@ -41,6 +46,7 @@ object SettingsManager {
     val autostartProfile = _autostartProfile.asStateFlow()
     val launchWithSystem = _launchWithSystem.asStateFlow()
     val minimizeOnLaunch = _minimizeOnLaunch.asStateFlow()
+    val preferredTheme = _preferredTheme.asStateFlow()
 
     fun setSelectedProfileID(id: String?) {
         _selectedProfileID.value = id ?: ""
@@ -49,7 +55,7 @@ object SettingsManager {
 
     fun setAutostartProfile(value: Boolean) {
         _autostartProfile.value = value
-        prefs.putBoolean(AUTOSTART_PROFILE, value)
+        prefs.putBoolean(AUTOSTART_PROFILE_KEY, value)
     }
 
     fun setLaunchWithSystem(value: Boolean) {
@@ -57,13 +63,13 @@ object SettingsManager {
             AutorunManager.createTask()
             if (AutorunManager.isTaskActive()) {
                 _launchWithSystem.value = true
-                prefs.putBoolean(LAUNCH_WITH_SYSTEM, true)
+                prefs.putBoolean(LAUNCH_WITH_SYSTEM_KEY, true)
             }
         } else {
             AutorunManager.removeTask()
             if (!AutorunManager.isTaskActive()) {
                 _launchWithSystem.value = false
-                prefs.putBoolean(LAUNCH_WITH_SYSTEM, false)
+                prefs.putBoolean(LAUNCH_WITH_SYSTEM_KEY, false)
             }
         }
     }
@@ -73,14 +79,19 @@ object SettingsManager {
         prefs.putBoolean(MINIMIZE_ON_LAUNCH_KEY, value)
     }
 
+    fun setPreferredTheme(value: Int) {
+        _preferredTheme.value = value
+        prefs.putInt(PREFERRED_THEME_KEY, value)
+    }
+
     fun saveWindowPosition(position: WindowPosition) {
-        prefs.putInt(WINDOW_POSITION_X, position.x.value.toInt())
-        prefs.putInt(WINDOW_POSITION_Y, position.y.value.toInt())
+        prefs.putInt(WINDOW_POSITION_X_KEY, position.x.value.toInt())
+        prefs.putInt(WINDOW_POSITION_Y_KEY, position.y.value.toInt())
     }
 
     fun loadWindowPosition(): WindowPosition {
-        val x = prefs.getInt(WINDOW_POSITION_X, Int.MIN_VALUE)
-        val y = prefs.getInt(WINDOW_POSITION_Y, Int.MIN_VALUE)
+        val x = prefs.getInt(WINDOW_POSITION_X_KEY, Int.MIN_VALUE)
+        val y = prefs.getInt(WINDOW_POSITION_Y_KEY, Int.MIN_VALUE)
 
         return if (x != Int.MIN_VALUE && y != Int.MIN_VALUE) {
             val screenBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().maximumWindowBounds
