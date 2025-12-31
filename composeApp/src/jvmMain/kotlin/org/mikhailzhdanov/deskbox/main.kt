@@ -21,7 +21,7 @@ import androidx.compose.ui.window.application
 import com.jthemedetecor.OsThemeDetector
 import com.kdroid.composetray.utils.SingleInstanceManager
 import deskbox.composeapp.generated.resources.Res
-import deskbox.composeapp.generated.resources.tray_icon
+import deskbox.composeapp.generated.resources.app_icon
 import org.jetbrains.compose.resources.painterResource
 import org.mikhailzhdanov.deskbox.managers.AutorunManager
 import org.mikhailzhdanov.deskbox.managers.ProfilesManager
@@ -43,7 +43,7 @@ private var composeWindow: ComposeWindow? = null
 fun main(args: Array<String>) = application {
     val minimizeOnLaunch = SettingsManager.minimizeOnLaunch.value
     var windowVisible by remember { mutableStateOf(!minimizeOnLaunch) }
-    val windowIcon = painterResource(Res.drawable.tray_icon)
+    val windowIcon = painterResource(Res.drawable.app_icon)
     val detector = OsThemeDetector.getDetector()
     var isSystemInDarkTheme by remember { mutableStateOf(detector.isDark) }
     val theme by SettingsManager.preferredTheme.collectAsState()

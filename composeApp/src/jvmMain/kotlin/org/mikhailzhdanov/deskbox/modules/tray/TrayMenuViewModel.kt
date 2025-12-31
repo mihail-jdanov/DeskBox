@@ -3,8 +3,8 @@ package org.mikhailzhdanov.deskbox.modules.tray
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import deskbox.composeapp.generated.resources.Res
-import deskbox.composeapp.generated.resources.tray_icon
-import deskbox.composeapp.generated.resources.tray_icon_on
+import deskbox.composeapp.generated.resources.app_icon
+import deskbox.composeapp.generated.resources.app_icon_on
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -17,9 +17,12 @@ import org.mikhailzhdanov.deskbox.managers.SingBoxManager
 
 class TrayMenuViewModel: ViewModel() {
 
+    private val iconDefault = Res.drawable.app_icon
+    private val iconOn = Res.drawable.app_icon_on
+
     private val _uiState = MutableStateFlow(
         TrayMenuUIState(
-            icon = if (SingBoxManager.isRunning.value) Res.drawable.tray_icon_on else Res.drawable.tray_icon,
+            icon = if (SingBoxManager.isRunning.value) iconOn else iconDefault,
             items = createItems(
                 ObservedValues(
                     isRunning = SingBoxManager.isRunning.value,
@@ -56,7 +59,7 @@ class TrayMenuViewModel: ViewModel() {
             }.collect { values ->
                 _uiState.update { current ->
                     current.copy(
-                        icon = if (values.isRunning) Res.drawable.tray_icon_on else Res.drawable.tray_icon,
+                        icon = if (values.isRunning) iconOn else iconDefault,
                         items = createItems(values)
                     )
                 }
