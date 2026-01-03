@@ -5,6 +5,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -28,6 +29,10 @@ fun ApplicationScope.TrayMenu(
 ) {
     val viewModel = remember { TrayMenuViewModel() }
     val state by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.setVectorIcons()
+    }
 
     if (OldWindowsChecker.isOldWindows) {
         Tray(

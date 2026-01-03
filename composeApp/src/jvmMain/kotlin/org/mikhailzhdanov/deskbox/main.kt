@@ -21,7 +21,8 @@ import androidx.compose.ui.window.application
 import com.jthemedetecor.OsThemeDetector
 import com.kdroid.composetray.utils.SingleInstanceManager
 import deskbox.composeapp.generated.resources.Res
-import deskbox.composeapp.generated.resources.app_icon
+import deskbox.composeapp.generated.resources.app_icon_raster
+import deskbox.composeapp.generated.resources.app_icon_vector
 import org.jetbrains.compose.resources.painterResource
 import org.mikhailzhdanov.deskbox.managers.AutorunManager
 import org.mikhailzhdanov.deskbox.managers.ProfilesManager
@@ -43,7 +44,7 @@ private var composeWindow: ComposeWindow? = null
 fun main(args: Array<String>) = application {
     val minimizeOnLaunch = SettingsManager.minimizeOnLaunch.value
     var windowVisible by remember { mutableStateOf(!minimizeOnLaunch) }
-    val windowIcon = painterResource(Res.drawable.app_icon)
+    var windowIcon by remember { mutableStateOf(Res.drawable.app_icon_raster) }
     val detector = OsThemeDetector.getDetector()
     var isSystemInDarkTheme by remember { mutableStateOf(detector.isDark) }
     val theme by SettingsManager.preferredTheme.collectAsState()
@@ -114,7 +115,7 @@ fun main(args: Array<String>) = application {
         state = windowState,
         visible = windowVisible,
         title = APP_NAME,
-        icon = windowIcon,
+        icon = painterResource(windowIcon),
         undecorated = true,
         transparent = true,
         resizable = false
@@ -122,7 +123,10 @@ fun main(args: Array<String>) = application {
         composeWindow = window
 
         LaunchedEffect(windowVisible) {
-            if (windowVisible) { restoreAndFocusWindow() }
+            if (windowVisible) {
+                restoreAndFocusWindow()
+                windowIcon = Res.drawable.app_icon_vector
+            }
         }
 
         MaterialTheme(
@@ -140,7 +144,7 @@ fun main(args: Array<String>) = application {
                 Column {
                     TitleBar(
                         title = APP_NAME,
-                        icon = windowIcon,
+                        icon = painterResource(windowIcon),
                         closeAction = closeAction
                     )
 

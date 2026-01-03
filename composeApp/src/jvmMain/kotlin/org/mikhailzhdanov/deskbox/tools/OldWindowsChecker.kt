@@ -10,9 +10,10 @@ object OldWindowsChecker {
 
     private fun checkForOldWindows(): Boolean {
         val osName = System.getProperty("os.name") ?: return true
-        return osName == "Windows 10" || osName == "Windows 8.1"
-                || osName == "Windows 8" || osName == "Windows 7"
-                || osName == "Windows Vista"
+        val version = osName.split(" ").getOrNull(1) ?: return true
+        return version == "10" || version == "8.1"
+                || version == "8" || version == "7"
+                || version == "Vista" || version == "XP"
     }
 
 }

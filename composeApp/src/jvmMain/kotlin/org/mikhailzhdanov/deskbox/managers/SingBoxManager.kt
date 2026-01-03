@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 import org.mikhailzhdanov.deskbox.LogLine
 import org.mikhailzhdanov.deskbox.Profile
 import org.mikhailzhdanov.deskbox.tools.ConfigTunPatcher
+import org.mikhailzhdanov.deskbox.tools.OldWindowsChecker
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -51,7 +52,11 @@ object SingBoxManager {
         killExistingCore()
 //        val config = configWithoutPlatformSpecificKeys(profile.config)
 //        configFile.writeText(config)
-        val config = ConfigTunPatcher.patchTunInterfaceName(profile.config)
+        val config = if (OldWindowsChecker.isOldWindows) {
+            ConfigTunPatcher.patchTunInterfaceName(profile.config)
+        } else {
+            profile.config
+        }
         configFile.writeText(config)
         process = ProcessBuilder(coreFile.absolutePath, "run", "-c", configFile.absolutePath)
             .redirectErrorStream(true)

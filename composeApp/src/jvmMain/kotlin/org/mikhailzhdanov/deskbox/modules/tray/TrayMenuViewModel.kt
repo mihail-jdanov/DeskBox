@@ -3,8 +3,10 @@ package org.mikhailzhdanov.deskbox.modules.tray
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import deskbox.composeapp.generated.resources.Res
-import deskbox.composeapp.generated.resources.app_icon
-import deskbox.composeapp.generated.resources.app_icon_on
+import deskbox.composeapp.generated.resources.app_icon_on_raster
+import deskbox.composeapp.generated.resources.app_icon_on_vector
+import deskbox.composeapp.generated.resources.app_icon_raster
+import deskbox.composeapp.generated.resources.app_icon_vector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -17,8 +19,8 @@ import org.mikhailzhdanov.deskbox.managers.SingBoxManager
 
 class TrayMenuViewModel: ViewModel() {
 
-    private val iconDefault = Res.drawable.app_icon
-    private val iconOn = Res.drawable.app_icon_on
+    private var iconDefault = Res.drawable.app_icon_raster
+    private var iconOn = Res.drawable.app_icon_on_raster
 
     private val _uiState = MutableStateFlow(
         TrayMenuUIState(
@@ -64,6 +66,14 @@ class TrayMenuViewModel: ViewModel() {
                     )
                 }
             }
+        }
+    }
+
+    fun setVectorIcons() {
+        iconDefault = Res.drawable.app_icon_vector
+        iconOn = Res.drawable.app_icon_on_vector
+        _uiState.update {
+            it.copy(icon = if (SingBoxManager.isRunning.value) iconOn else iconDefault)
         }
     }
 

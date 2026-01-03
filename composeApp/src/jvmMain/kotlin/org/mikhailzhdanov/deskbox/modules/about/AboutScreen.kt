@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import deskbox.composeapp.generated.resources.Res
-import deskbox.composeapp.generated.resources.app_icon
+import deskbox.composeapp.generated.resources.app_icon_vector
 import org.jetbrains.compose.resources.painterResource
 import org.mikhailzhdanov.deskbox.APP_NAME
 import org.mikhailzhdanov.deskbox.views.TitledView
@@ -32,7 +32,7 @@ fun AboutScreen() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Image(
-                    painter = painterResource(Res.drawable.app_icon),
+                    painter = painterResource(Res.drawable.app_icon_vector),
                     contentDescription = null,
                     modifier = Modifier.size(128.dp)
                 )
