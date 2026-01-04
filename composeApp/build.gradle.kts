@@ -50,7 +50,7 @@ compose.desktop {
             modules("java.net.http")
             targetFormats(TargetFormat.Exe)
             packageName = "DeskBox"
-            packageVersion = "1.2.1"
+            packageVersion = "1.2.2"
             windows {
                 iconFile = project.file("resources/icon.ico")
             }
