@@ -184,6 +184,7 @@ fun ControlScreen() {
 
 @Composable
 fun parseAnsiToAnnotatedString(text: String): AnnotatedString {
+    val defaultColor = LocalContentColor.current
     val regex = Regex("\u001B\\[[;\\d]*m")
 
     return buildAnnotatedString {
@@ -193,16 +194,16 @@ fun parseAnsiToAnnotatedString(text: String): AnnotatedString {
         regex.findAll(text).forEach { match ->
             val segment = text.substring(lastIndex, match.range.first)
             if (segment.isNotEmpty()) {
-                withStyle(style = SpanStyle(color = currentColor ?: Color.Black)) {
+                withStyle(style = SpanStyle(color = currentColor ?: defaultColor)) {
                     append(segment)
                 }
             }
 
-            when (match.value) {
-                "\u001B[31m" -> currentColor = MaterialTheme.colorScheme.error
-                "\u001B[32m" -> currentColor = Color.success
-                "\u001B[33m" -> currentColor = Color.warning
-                else -> currentColor = LocalContentColor.current
+            currentColor = when (match.value) {
+                "\u001B[31m" -> MaterialTheme.colorScheme.error
+                "\u001B[32m" -> Color.success
+                "\u001B[33m" -> Color.warning
+                else -> defaultColor
             }
 
             lastIndex = match.range.last + 1
@@ -210,7 +211,7 @@ fun parseAnsiToAnnotatedString(text: String): AnnotatedString {
 
         val tail = text.substring(lastIndex)
         if (tail.isNotEmpty()) {
-            withStyle(style = SpanStyle(color = currentColor ?: Color.Black)) {
+            withStyle(style = SpanStyle(color = currentColor ?: defaultColor)) {
                 append(tail)
             }
         }
