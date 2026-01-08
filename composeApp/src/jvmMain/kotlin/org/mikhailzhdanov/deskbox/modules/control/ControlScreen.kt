@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.mikhailzhdanov.deskbox.extensions.success
 import org.mikhailzhdanov.deskbox.extensions.warning
+import org.mikhailzhdanov.deskbox.tools.OSChecker
+import org.mikhailzhdanov.deskbox.tools.OSType
 import org.mikhailzhdanov.deskbox.views.TitledScrollView
 import org.mikhailzhdanov.deskbox.views.TitledView
 
@@ -107,7 +109,10 @@ fun ControlScreen() {
 
                         Text(
                             text = if (state.showProfileDropdown) "⏶" else "⏷",
-                            modifier = Modifier.padding(bottom = 3.dp)
+                            modifier = when (OSChecker.currentOS.type) {
+                                OSType.Windows -> Modifier.padding(bottom = 3.dp)
+                                OSType.MacOS -> Modifier.padding(top = 2.dp)
+                            }
                         )
                     }
 
