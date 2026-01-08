@@ -3,6 +3,7 @@ package org.mikhailzhdanov.deskbox
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -31,15 +32,20 @@ import org.mikhailzhdanov.deskbox.managers.SingBoxManager
 import org.mikhailzhdanov.deskbox.modules.dialogs.DialogsScreen
 import org.mikhailzhdanov.deskbox.modules.main.MainScreen
 import org.mikhailzhdanov.deskbox.modules.tray.TrayMenu
-import org.mikhailzhdanov.deskbox.views.TitleBar
+import org.mikhailzhdanov.deskbox.tools.OSChecker
+import org.mikhailzhdanov.deskbox.tools.OSType
+import org.mikhailzhdanov.deskbox.views.WindowsTitleBar
+import java.awt.Desktop
 import java.awt.Frame
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
+const val APP_ID = "org.mikhailzhdanov.deskbox"
 const val APP_NAME = "DeskBox"
 
 private var windowState = getWindowState()
 private var composeWindow: ComposeWindow? = null
+private var initialSetupCompleted = false
 
 fun main(args: Array<String>) = application {
     val minimizeOnLaunch = SettingsManager.minimizeOnLaunch.value
@@ -48,32 +54,49 @@ fun main(args: Array<String>) = application {
     val detector = OsThemeDetector.getDetector()
     var isSystemInDarkTheme by remember { mutableStateOf(detector.isDark) }
     val theme by SettingsManager.preferredTheme.collectAsState()
+    val osType = OSChecker.currentOS.type
 
-    detector.registerListener { isDark ->
-        isSystemInDarkTheme = isDark
-    }
-
-    val isSingleInstance = SingleInstanceManager.isSingleInstance(
-        onRestoreFileCreated = {
-            args.firstOrNull()?.let(::writeText)
-        },
-        onRestoreRequest = {
+    if (!initialSetupCompleted) {
+        val onRestoreRequest: (String) -> Unit = { arg ->
             if (windowVisible) {
                 restoreAndFocusWindow()
             } else {
                 windowState = getWindowState()
                 windowVisible = true
             }
-            ProfilesManager.importRemoteProfile(readText())
+            ProfilesManager.importRemoteProfile(arg)
         }
-    )
 
-    if (!isSingleInstance) {
-        exitApplication()
-        return@application
-    }
+        val isSingleInstance: Boolean
+        when (osType) {
+            OSType.Windows -> {
+                isSingleInstance = SingleInstanceManager.isSingleInstance(
+                    onRestoreFileCreated = {
+                        args.firstOrNull()?.let(::writeText)
+                    },
+                    onRestoreRequest = { onRestoreRequest(readText()) }
+                )
+                registerSingBoxLinks()
+            }
+            OSType.MacOS -> {
+                isSingleInstance = SingleInstanceManager.isSingleInstance {
+                    if (windowVisible) restoreAndFocusWindow()
+                }
+                Desktop.getDesktop().setOpenURIHandler { event ->
+                    onRestoreRequest(event.uri.toString())
+                }
+            }
+        }
 
-    LaunchedEffect(Unit) {
+        if (!isSingleInstance) {
+            exitApplication()
+            return@application
+        }
+
+        detector.registerListener { isDark ->
+            isSystemInDarkTheme = isDark
+        }
+
         if (SettingsManager.autostartProfile.value) {
             val profile = ProfilesManager.profiles.value.firstOrNull {
                 it.id == SettingsManager.selectedProfileID.value
@@ -82,11 +105,21 @@ fun main(args: Array<String>) = application {
                 SingBoxManager.start(profile)
             }
         }
-        val isTaskActive = AutorunManager.isTaskActive()
-        if (SettingsManager.launchWithSystem.value != isTaskActive) {
-            SettingsManager.setLaunchWithSystem(isTaskActive)
+
+        AutorunManager.isTaskActive { isActive ->
+            if (SettingsManager.launchWithSystem.value != isActive) {
+                SettingsManager.setLaunchWithSystem(isActive)
+            }
         }
-        registerSingBoxLinks()
+
+        Runtime.getRuntime().addShutdownHook(
+            Thread {
+                SingBoxManager.stop()
+                SettingsManager.saveWindowPosition(windowState.position)
+            }
+        )
+
+        initialSetupCompleted = true
     }
 
     TrayMenu(
@@ -99,8 +132,6 @@ fun main(args: Array<String>) = application {
             }
         },
         exitHandler = {
-            SingBoxManager.stop()
-            SettingsManager.saveWindowPosition(windowState.position)
             exitApplication()
         }
     )
@@ -115,12 +146,30 @@ fun main(args: Array<String>) = application {
         state = windowState,
         visible = windowVisible,
         title = APP_NAME,
-        icon = painterResource(windowIcon),
-        undecorated = true,
-        transparent = true,
+        icon = when (osType) {
+            OSType.Windows -> painterResource(windowIcon)
+            OSType.MacOS -> null
+        },
+        undecorated = osType.needsCustomTitleBar(),
+        transparent = osType.needsCustomTitleBar(),
         resizable = false
     ) {
         composeWindow = window
+
+        if (osType == OSType.MacOS) {
+            window.rootPane.putClientProperty("apple.awt.fullWindowContent", true)
+            window.rootPane.putClientProperty("apple.awt.transparentTitleBar", true)
+            val lightAppearance = "NSAppearanceNameAqua"
+            val darkAppearance = "NSAppearanceNameDarkAqua"
+            val appearance = when (Theme.fromRawValue(theme)) {
+                Theme.Auto -> {
+                    if (isSystemInDarkTheme) darkAppearance else lightAppearance
+                }
+                Theme.Light -> lightAppearance
+                Theme.Dark -> darkAppearance
+            }
+            window.rootPane.putClientProperty("apple.awt.windowAppearance", appearance)
+        }
 
         LaunchedEffect(windowVisible) {
             if (windowVisible) {
@@ -139,14 +188,21 @@ fun main(args: Array<String>) = application {
             }
         ) {
             Surface(
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(osType.getWindowCornerRadius().dp)
             ) {
                 Column {
-                    TitleBar(
-                        title = APP_NAME,
-                        icon = painterResource(windowIcon),
-                        closeAction = closeAction
-                    )
+                    when (osType) {
+                        OSType.Windows -> {
+                            WindowsTitleBar(
+                                title = APP_NAME,
+                                icon = painterResource(windowIcon),
+                                closeAction = closeAction
+                            )
+                        }
+                        OSType.MacOS -> {
+                            Box(modifier = Modifier.height(28.dp))
+                        }
+                    }
 
                     Box(
                         modifier = Modifier.border(
@@ -182,19 +238,27 @@ private fun restoreAndFocusWindow() {
         if (extendedState == Frame.ICONIFIED) {
             extendedState = Frame.NORMAL
         }
+        isAlwaysOnTop = true
         toFront()
         requestFocus()
+        isAlwaysOnTop = false
+        Desktop.getDesktop().requestForeground(true)
     }
 }
 
 private fun registerSingBoxLinks() {
-    ProcessBuilder(
-        "reg", "add", "HKEY_CURRENT_USER\\Software\\Classes\\sing-box",
-        "/f", "/v", "URL Protocol", "/d", ""
-    ).start().waitFor()
-    ProcessBuilder(
-        "reg", "add",
-        "HKEY_CURRENT_USER\\Software\\Classes\\sing-box\\shell\\open\\command",
-        "/f", "/ve", "/d", "${AutorunManager.pathToExecutable} \"\"%1\"\""
-    ).start().waitFor()
+    when (OSChecker.currentOS.type) {
+        OSType.Windows -> {
+            ProcessBuilder(
+                "reg", "add", "HKEY_CURRENT_USER\\Software\\Classes\\sing-box",
+                "/f", "/v", "URL Protocol", "/d", ""
+            ).start().waitFor()
+            ProcessBuilder(
+                "reg", "add",
+                "HKEY_CURRENT_USER\\Software\\Classes\\sing-box\\shell\\open\\command",
+                "/f", "/ve", "/d", "${AutorunManager.pathToExecutable} \"\"%1\"\""
+            ).start().waitFor()
+        }
+        OSType.MacOS -> {}
+    }
 }

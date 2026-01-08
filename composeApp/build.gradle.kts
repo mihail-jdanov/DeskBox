@@ -9,6 +9,13 @@ plugins {
     kotlin("plugin.serialization") version "2.2.20"
 }
 
+configurations.all {
+    resolutionStrategy.dependencySubstitution.apply {
+        substitute(module("net.java.dev.jna:jna-platform"))
+            .using(module("net.java.dev.jna:jna-platform-jpms:5.17.0"))
+    }
+}
+
 kotlin {
     jvm()
     
@@ -34,6 +41,8 @@ kotlin {
             implementation("io.github.kdroidfilter:composenativetray:1.0.4")
             implementation("io.github.g0dkar:qrcode-kotlin:4.5.0")
             implementation("com.github.Dansoftowner:jSystemThemeDetector:3.9.1")
+            implementation("net.java.dev.jna:jna-jpms:5.17.0")
+            implementation("io.github.vinceglb:auto-launch:0.7.0")
         }
     }
 }
@@ -50,9 +59,30 @@ compose.desktop {
             modules("java.net.http")
             targetFormats(TargetFormat.Exe)
             packageName = "DeskBox"
-            packageVersion = "1.2.2"
+            packageVersion = "1.3.0"
             windows {
                 iconFile = project.file("resources/icon.ico")
+            }
+            macOS {
+                iconFile = project.file("resources/icon.icns")
+                jvmArgs += "-Dapple.awt.application.appearance=system"
+                infoPlist {
+                    extraKeysRawXml = """
+                        <key>LSUIElement</key>
+	                    <true/>
+                        <key>CFBundleURLTypes</key>
+                        <array>
+                            <dict>
+                                <key>CFBundleURLName</key>
+                                <string>sing-box</string>
+                                <key>CFBundleURLSchemes</key>
+                                <array>
+                                    <string>sing-box</string>
+                                </array>
+                            </dict>
+                        </array>
+                    """.trimIndent()
+                }
             }
         }
     }

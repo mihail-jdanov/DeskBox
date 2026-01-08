@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import deskbox.composeapp.generated.resources.Res
 import deskbox.composeapp.generated.resources.app_icon_on_raster
 import deskbox.composeapp.generated.resources.app_icon_on_vector
+import deskbox.composeapp.generated.resources.app_icon_on_vector_mac
 import deskbox.composeapp.generated.resources.app_icon_raster
 import deskbox.composeapp.generated.resources.app_icon_vector
+import deskbox.composeapp.generated.resources.app_icon_vector_mac
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -16,11 +18,22 @@ import org.mikhailzhdanov.deskbox.Profile
 import org.mikhailzhdanov.deskbox.managers.ProfilesManager
 import org.mikhailzhdanov.deskbox.managers.SettingsManager
 import org.mikhailzhdanov.deskbox.managers.SingBoxManager
+import org.mikhailzhdanov.deskbox.tools.OSChecker
+import org.mikhailzhdanov.deskbox.tools.OSType
 
 class TrayMenuViewModel: ViewModel() {
 
-    private var iconDefault = Res.drawable.app_icon_raster
-    private var iconOn = Res.drawable.app_icon_on_raster
+    private val osType = OSChecker.currentOS.type
+
+    private var iconDefault = when (osType) {
+        OSType.Windows -> Res.drawable.app_icon_raster
+        OSType.MacOS -> Res.drawable.app_icon_vector_mac
+    }
+
+    private var iconOn = when (osType) {
+        OSType.Windows -> Res.drawable.app_icon_on_raster
+        OSType.MacOS -> Res.drawable.app_icon_on_vector_mac
+    }
 
     private val _uiState = MutableStateFlow(
         TrayMenuUIState(
@@ -70,10 +83,15 @@ class TrayMenuViewModel: ViewModel() {
     }
 
     fun setVectorIcons() {
-        iconDefault = Res.drawable.app_icon_vector
-        iconOn = Res.drawable.app_icon_on_vector
-        _uiState.update {
-            it.copy(icon = if (SingBoxManager.isRunning.value) iconOn else iconDefault)
+        when (osType) {
+            OSType.Windows -> {
+                iconDefault = Res.drawable.app_icon_vector
+                iconOn = Res.drawable.app_icon_on_vector
+                _uiState.update {
+                    it.copy(icon = if (SingBoxManager.isRunning.value) iconOn else iconDefault)
+                }
+            }
+            OSType.MacOS -> {}
         }
     }
 

@@ -60,16 +60,18 @@ object SettingsManager {
 
     fun setLaunchWithSystem(value: Boolean) {
         if (value) {
-            AutorunManager.createTask()
-            if (AutorunManager.isTaskActive()) {
-                _launchWithSystem.value = true
-                prefs.putBoolean(LAUNCH_WITH_SYSTEM_KEY, true)
+            AutorunManager.createTask { success ->
+                if (success) {
+                    _launchWithSystem.value = true
+                    prefs.putBoolean(LAUNCH_WITH_SYSTEM_KEY, true)
+                }
             }
         } else {
-            AutorunManager.removeTask()
-            if (!AutorunManager.isTaskActive()) {
-                _launchWithSystem.value = false
-                prefs.putBoolean(LAUNCH_WITH_SYSTEM_KEY, false)
+            AutorunManager.removeTask { success ->
+                if (success) {
+                    _launchWithSystem.value = false
+                    prefs.putBoolean(LAUNCH_WITH_SYSTEM_KEY, false)
+                }
             }
         }
     }

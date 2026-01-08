@@ -3,7 +3,6 @@ package org.mikhailzhdanov.deskbox.managers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -11,21 +10,23 @@ import kotlinx.coroutines.withContext
 import org.mikhailzhdanov.deskbox.LogLine
 import org.mikhailzhdanov.deskbox.Profile
 import org.mikhailzhdanov.deskbox.tools.ConfigTunPatcher
-import org.mikhailzhdanov.deskbox.tools.OldWindowsChecker
+import org.mikhailzhdanov.deskbox.tools.OSChecker
+import org.mikhailzhdanov.deskbox.tools.OSType
 import java.io.File
 import java.io.FileNotFoundException
 
 object SingBoxManager {
 
-    private const val CORE_FILE_NAME = "sing-box.exe"
     private const val CONFIG_FILE_NAME = "config.json"
     private const val CONFIG_TEMP_FILE_NAME = "config_temp.json"
     private const val MAX_LOG_LINES = 300
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val coreFile = File(CORE_FILE_NAME)
-    private val configFile = File(CONFIG_FILE_NAME)
-    private val configTempFile = File(CONFIG_TEMP_FILE_NAME)
+    private val scope = CoroutineScope(Dispatchers.IO)
+    private val osType = OSChecker.currentOS.type
+    private val coreFileName = osType.getCoreFileName()
+    private val coreFile = File(osType.getWorkingDir(), coreFileName)
+    private val configFile = File(osType.getWorkingDir(), CONFIG_FILE_NAME)
+    private val configTempFile = File(osType.getWorkingDir(), CONFIG_TEMP_FILE_NAME)
     private val _logs = MutableStateFlow(emptyList<LogLine>())
     private val _isRunning = MutableStateFlow(false)
     private val _version = MutableStateFlow("")
@@ -52,11 +53,10 @@ object SingBoxManager {
         killExistingCore()
 //        val config = configWithoutPlatformSpecificKeys(profile.config)
 //        configFile.writeText(config)
-        val config = if (OldWindowsChecker.isOldWindows) {
-            ConfigTunPatcher.patchTunInterfaceName(profile.config)
-        } else {
-            profile.config
-        }
+        val config = ConfigTunPatcher.patchTunInterfaceName(
+            os = OSChecker.currentOS,
+            configJson = profile.config
+        )
         configFile.writeText(config)
         process = ProcessBuilder(coreFile.absolutePath, "run", "-c", configFile.absolutePath)
             .redirectErrorStream(true)
@@ -129,16 +129,32 @@ object SingBoxManager {
     }
 
     private fun killExistingCore() {
-        ProcessHandle.allProcesses()
-            .filter { it.info().command().orElse("").endsWith(CORE_FILE_NAME) }
-            .forEach { it.destroy() }
+        when (osType) {
+            OSType.Windows -> {
+                ProcessHandle.allProcesses()
+                    .filter { it.info().command().orElse("").endsWith(coreFileName) }
+                    .forEach { it.destroy() }
+            }
+            OSType.MacOS -> {
+                val process = ProcessBuilder("ps", "axo", "pid,command").start()
+                process.inputStream.bufferedReader().useLines { lines ->
+                    lines
+                        .filter { it.contains(coreFile.absolutePath) }
+                        .forEach { line ->
+                            val pid = line.trim().split("\\s+".toRegex())[0].toLong()
+                            println(pid)
+                            ProcessHandle.of(pid).ifPresent { it.destroy() }
+                        }
+                }
+            }
+        }
     }
 
     private fun fetchVersion() {
         scope.launch(Dispatchers.Main) {
             _version.value = try {
                 if (!coreFile.exists()) {
-                    throw FileNotFoundException("$CORE_FILE_NAME not found")
+                    throw FileNotFoundException("$coreFileName not found")
                 }
                 val process = ProcessBuilder(coreFile.absolutePath, "version")
                     .redirectErrorStream(true)

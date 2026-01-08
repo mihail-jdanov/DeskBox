@@ -14,11 +14,12 @@ object RemoteConfigsManager {
 
     private const val JOB_INTERVAL: Long = 60
 
+    private val scope = CoroutineScope(Dispatchers.IO)
     private var job: Job? = null
 
     fun startConfigUpdates(profile: Profile) {
         stopConfigUpdates()
-        job = CoroutineScope(Dispatchers.IO).launch {
+        job = scope.launch {
             while (isActive) {
                 val profile = ProfilesManager.profiles.value.firstOrNull {
                     it.id == profile.id

@@ -10,6 +10,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.*
 import org.mikhailzhdanov.deskbox.Profile
 import org.mikhailzhdanov.deskbox.tools.JsonFormatter
+import org.mikhailzhdanov.deskbox.tools.OSChecker
 import java.io.File
 import java.net.URI
 import java.net.URLDecoder
@@ -19,7 +20,8 @@ object ProfilesManager {
 
     private const val PROFILES_FILE_NAME = "profiles.json"
 
-    private val profilesFile = File(PROFILES_FILE_NAME)
+    private val scope = CoroutineScope(Dispatchers.IO)
+    private val profilesFile = File(OSChecker.currentOS.type.getWorkingDir(), PROFILES_FILE_NAME)
     private val json = Json { prettyPrint = true }
     private val _profiles = MutableStateFlow(emptyList<Profile>())
     private val _profileToImport: MutableStateFlow<Profile?> = MutableStateFlow(null)
@@ -122,7 +124,7 @@ object ProfilesManager {
                         title = "Import",
                         handler = {
                             _profileToImport.value = profile
-                            CoroutineScope(Dispatchers.IO).launch {
+                            scope.launch {
                                 delay(500)
                                 _profileToImport.value = null
                             }

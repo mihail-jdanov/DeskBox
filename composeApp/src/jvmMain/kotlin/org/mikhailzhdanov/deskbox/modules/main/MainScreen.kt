@@ -45,6 +45,7 @@ fun MainScreen() {
                 NavigationRail(
                     modifier = Modifier
                         .fillMaxHeight()
+                        .padding(top = 4.dp)
                 ) {
                     NavigationRailItem(
                         selected = state.selectedTab == 0,
