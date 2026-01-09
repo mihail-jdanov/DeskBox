@@ -1,6 +1,7 @@
 package org.mikhailzhdanov.deskbox.tools
 
 import org.mikhailzhdanov.deskbox.APP_NAME
+import java.io.File
 import java.nio.file.Paths
 
 object OSChecker {
@@ -41,7 +42,10 @@ enum class OSType {
 
     fun getWorkingDir(): String {
         when (this) {
-            Windows -> return ""
+            Windows -> {
+                val name = getCoreFileName()
+                return File(name).absolutePath.removeSuffix(name)
+            }
             MacOS -> {
                 val home = System.getProperty("user.home")
                 val path = Paths.get(home, "Library", "Application Support", APP_NAME)

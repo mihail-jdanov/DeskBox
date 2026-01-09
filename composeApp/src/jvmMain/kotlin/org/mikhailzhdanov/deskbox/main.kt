@@ -242,7 +242,9 @@ private fun restoreAndFocusWindow() {
         toFront()
         requestFocus()
         isAlwaysOnTop = false
-        Desktop.getDesktop().requestForeground(true)
+        if (OSChecker.currentOS.type == OSType.MacOS) {
+            Desktop.getDesktop().requestForeground(true)
+        }
     }
 }
 
