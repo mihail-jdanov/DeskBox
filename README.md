@@ -27,7 +27,7 @@ xattr -r -d com.apple.quarantine ~/Downloads/DeskBox_1.3.0
 [sing-box documentation](https://sing-box.sagernet.org/configuration/)
 
 ## Screenshots
-<img width="410" alt="image" src="https://github.com/user-attachments/assets/64d3b074-3874-4edc-8b7b-3af158f7fbf8" />
-<img width="410" alt="image" src="https://github.com/user-attachments/assets/fb35431b-695a-4120-ba51-dd03bb7304d3" />
+<img width="410" alt="image" src="https://github.com/user-attachments/assets/ba20728a-77f4-46d7-88bb-5bb7d9ab6b49" />
+<img width="410" alt="image" src="https://github.com/user-attachments/assets/0b817484-7169-4f10-ba9b-c21d5eac4349" />
 <img width="410" alt="image" src="https://github.com/user-attachments/assets/4d3a1fe8-179d-4488-b554-d4dd9c7197d7" />
 <img width="410" alt="image" src="https://github.com/user-attachments/assets/12ed427b-4311-45a6-b47d-93e116aeee66" />
