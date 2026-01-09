@@ -69,7 +69,9 @@ compose.desktop {
                 infoPlist {
                     extraKeysRawXml = """
                         <key>LSUIElement</key>
-	                    <true/>
+                        <true/>
+                        <key>NSHumanReadableCopyright</key>
+                        <string></string>
                         <key>CFBundleURLTypes</key>
                         <array>
                             <dict>
