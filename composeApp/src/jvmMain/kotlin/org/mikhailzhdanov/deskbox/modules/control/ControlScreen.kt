@@ -40,10 +40,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import deskbox.composeapp.generated.resources.Res
+import deskbox.composeapp.generated.resources.arrow_drop_down
+import deskbox.composeapp.generated.resources.arrow_drop_up
+import org.jetbrains.compose.resources.painterResource
 import org.mikhailzhdanov.deskbox.extensions.success
 import org.mikhailzhdanov.deskbox.extensions.warning
-import org.mikhailzhdanov.deskbox.tools.OSChecker
-import org.mikhailzhdanov.deskbox.tools.OSType
 import org.mikhailzhdanov.deskbox.views.TitledScrollView
 import org.mikhailzhdanov.deskbox.views.TitledView
 
@@ -107,12 +109,15 @@ fun ControlScreen() {
                             overflow = TextOverflow.Ellipsis
                         )
 
-                        Text(
-                            text = if (state.showProfileDropdown) "⏶" else "⏷",
-                            modifier = when (OSChecker.currentOS.type) {
-                                OSType.Windows -> Modifier.padding(bottom = 3.dp)
-                                OSType.MacOS -> Modifier.padding(top = 2.dp)
-                            }
+                        Icon(
+                            painter = painterResource(
+                                if (state.showProfileDropdown) {
+                                    Res.drawable.arrow_drop_up
+                                } else {
+                                    Res.drawable.arrow_drop_down
+                                }
+                            ),
+                            contentDescription = null
                         )
                     }
 
