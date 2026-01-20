@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.mikhailzhdanov.deskbox.APP_ID
+import org.mikhailzhdanov.deskbox.APP_NAME
 import org.mikhailzhdanov.deskbox.tools.OSChecker
 import org.mikhailzhdanov.deskbox.tools.OSType
 import java.io.File
@@ -27,11 +28,20 @@ object AutorunManager {
         )
     }
 
+    private val linuxAutostartDir by lazy {
+        File(System.getProperty("user.home"), ".config/autostart")
+    }
+
+    private val linuxAutostartFile by lazy {
+        File(linuxAutostartDir, "$APP_NAME.desktop")
+    }
+
     fun createTask(completion: (Boolean) -> Unit) {
         scope.launch {
             when (osType) {
                 OSType.Windows -> createWindowsTask()
                 OSType.MacOS -> macAutoLaunch.enable()
+                OSType.Linux -> createLinuxTask()
             }
             completion(isTaskActive())
         }
@@ -42,6 +52,7 @@ object AutorunManager {
             when (osType) {
                 OSType.Windows -> removeWindowsTask()
                 OSType.MacOS -> macAutoLaunch.disable()
+                OSType.Linux -> removeLinuxTask()
             }
             completion(!isTaskActive())
         }
@@ -57,6 +68,7 @@ object AutorunManager {
         return when (osType) {
             OSType.Windows -> isWindowsTaskActive()
             OSType.MacOS -> macAutoLaunch.isEnabled()
+            OSType.Linux -> isLinuxTaskActive()
         }
     }
 
@@ -163,6 +175,36 @@ object AutorunManager {
 
     private fun getWindowsWorkingDir(): String {
         return File(pathToExecutable).parent
+    }
+
+    private fun createLinuxTask() {
+        removeLinuxTask()
+        val dir = OSType.Linux.getWorkingDir()
+        val content = """
+            [Desktop Entry]
+            Name=$APP_NAME
+            Exec=${dir}bin/$APP_NAME
+            Path=$dir
+            Icon=${dir}lib/$APP_NAME.png
+            Terminal=false
+            Categories=Network
+            Type=Application
+            StartupNotify=false
+            StartupWMClass=org-mikhailzhdanov-deskbox-MainKt
+            X-GNOME-Autostart-enabled=true
+        """.trimIndent()
+        if (!linuxAutostartDir.exists()) linuxAutostartDir.mkdirs()
+        linuxAutostartFile.writeText(content)
+    }
+
+    private fun removeLinuxTask() {
+        if (isLinuxTaskActive()) {
+            linuxAutostartFile.delete()
+        }
+    }
+
+    private fun isLinuxTaskActive(): Boolean {
+        return linuxAutostartFile.exists()
     }
 
 }

@@ -18,7 +18,8 @@ object OSChecker {
         val name = osName.lowercase()
         return when {
             name.contains("win") -> OS(OSType.Windows, checkForOldWindows())
-            else -> OS(OSType.MacOS, false)
+            name.contains("mac") -> OS(OSType.MacOS, false)
+            else -> OS(OSType.Linux, false)
         }
     }
 
@@ -38,7 +39,8 @@ data class OS(
 
 enum class OSType {
     Windows,
-    MacOS;
+    MacOS,
+    Linux;
 
     fun getWorkingDir(): String {
         when (this) {
@@ -51,26 +53,30 @@ enum class OSType {
                 val path = Paths.get(home, "Library", "Application Support", APP_NAME)
                 return path.toString()
             }
+            Linux -> {
+                val name = getCoreFileName()
+                return File(name).absolutePath.removeSuffix(name).removeSuffix("bin/")
+            }
         }
     }
 
     fun getCoreFileName(): String {
         return when (this) {
             Windows -> "sing-box.exe"
-            MacOS -> "sing-box"
+            MacOS, Linux -> "sing-box"
         }
     }
 
     fun getWindowCornerRadius(): Int {
         return when (this) {
-            Windows -> 8
+            Windows, Linux -> 8
             MacOS -> 0
         }
     }
 
     fun needsCustomTitleBar(): Boolean {
         return when (this) {
-            Windows -> true
+            Windows, Linux -> true
             MacOS -> false
         }
     }

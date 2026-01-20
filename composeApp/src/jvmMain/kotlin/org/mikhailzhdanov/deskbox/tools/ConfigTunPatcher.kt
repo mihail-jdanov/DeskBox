@@ -13,6 +13,7 @@ import kotlin.collections.set
 object ConfigTunPatcher {
 
     fun patchTunInterfaceName(os: OS, configJson: String): String {
+        if (os.type == OSType.Linux) { return configJson }
         val json = Json { ignoreUnknownKeys = true }
         val config = json.parseToJsonElement(configJson)
         val configObj = config.jsonObject
@@ -50,6 +51,9 @@ object ConfigTunPatcher {
             }
             OSType.MacOS -> {
                 return "utun123"
+            }
+            OSType.Linux -> {
+                return baseName
             }
         }
     }

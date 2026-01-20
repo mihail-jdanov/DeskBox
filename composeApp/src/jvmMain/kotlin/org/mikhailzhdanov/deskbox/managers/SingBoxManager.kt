@@ -49,7 +49,7 @@ object SingBoxManager {
     }
 
     fun start(profile: Profile) {
-        if (_isRunning.value) return
+        if (_isRunning.value || _version.value.startsWith(ERROR_PREFIX)) return
         killExistingCore()
 //        val config = configWithoutPlatformSpecificKeys(profile.config)
 //        configFile.writeText(config)
@@ -145,6 +145,15 @@ object SingBoxManager {
                             println(pid)
                             ProcessHandle.of(pid).ifPresent { it.destroy() }
                         }
+                }
+            }
+            OSType.Linux -> {
+                val process = ProcessBuilder("pgrep", "-f", coreFile.absolutePath).start()
+                val pids = process.inputStream.bufferedReader()
+                    .readLines()
+                    .mapNotNull { it.toLongOrNull() }
+                pids.forEach { pid ->
+                    ProcessHandle.of(pid).ifPresent { it.destroy() }
                 }
             }
         }

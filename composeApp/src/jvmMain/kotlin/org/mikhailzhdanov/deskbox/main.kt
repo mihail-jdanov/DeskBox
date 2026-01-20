@@ -34,7 +34,7 @@ import org.mikhailzhdanov.deskbox.modules.main.MainScreen
 import org.mikhailzhdanov.deskbox.modules.tray.TrayMenu
 import org.mikhailzhdanov.deskbox.tools.OSChecker
 import org.mikhailzhdanov.deskbox.tools.OSType
-import org.mikhailzhdanov.deskbox.views.WindowsTitleBar
+import org.mikhailzhdanov.deskbox.views.CustomTitleBar
 import java.awt.Desktop
 import java.awt.Frame
 import kotlin.io.path.readText
@@ -69,7 +69,7 @@ fun main(args: Array<String>) = application {
 
         val isSingleInstance: Boolean
         when (osType) {
-            OSType.Windows -> {
+            OSType.Windows, OSType.Linux -> {
                 isSingleInstance = SingleInstanceManager.isSingleInstance(
                     onRestoreFileCreated = {
                         args.firstOrNull()?.let(::writeText)
@@ -91,6 +91,10 @@ fun main(args: Array<String>) = application {
         if (!isSingleInstance) {
             exitApplication()
             return@application
+        }
+
+        if (!args.isEmpty()) {
+            onRestoreRequest(args.first())
         }
 
         detector.registerListener { isDark ->
@@ -147,7 +151,7 @@ fun main(args: Array<String>) = application {
         visible = windowVisible,
         title = APP_NAME,
         icon = when (osType) {
-            OSType.Windows -> painterResource(windowIcon)
+            OSType.Windows, OSType.Linux -> painterResource(windowIcon)
             OSType.MacOS -> null
         },
         undecorated = osType.needsCustomTitleBar(),
@@ -192,8 +196,9 @@ fun main(args: Array<String>) = application {
             ) {
                 Column {
                     when (osType) {
-                        OSType.Windows -> {
-                            WindowsTitleBar(
+                        OSType.Windows, OSType.Linux -> {
+                            CustomTitleBar(
+                                isWindows = osType == OSType.Windows,
                                 title = APP_NAME,
                                 icon = painterResource(windowIcon),
                                 closeAction = closeAction
@@ -262,5 +267,13 @@ private fun registerSingBoxLinks() {
             ).start().waitFor()
         }
         OSType.MacOS -> {}
+        OSType.Linux -> {
+            ProcessBuilder(
+                "xdg-mime",
+                "default",
+                "$APP_NAME.desktop",
+                "x-scheme-handler/sing-box"
+            ).start().waitFor()
+        }
     }
 }

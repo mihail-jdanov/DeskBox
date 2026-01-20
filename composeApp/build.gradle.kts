@@ -59,7 +59,7 @@ compose.desktop {
             modules("java.net.http")
             targetFormats(TargetFormat.Exe)
             packageName = "DeskBox"
-            packageVersion = "1.3.0"
+            packageVersion = "1.4.0"
             windows {
                 iconFile = project.file("resources/icon.ico")
             }
@@ -85,6 +85,9 @@ compose.desktop {
                         </array>
                     """.trimIndent()
                 }
+            }
+            linux {
+                iconFile = project.file("resources/icon.png")
             }
         }
     }

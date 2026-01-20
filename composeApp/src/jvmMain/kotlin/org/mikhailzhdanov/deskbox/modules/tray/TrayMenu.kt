@@ -37,7 +37,7 @@ fun ApplicationScope.TrayMenu(
 
     val os = OSChecker.currentOS
     when (os.type) {
-        OSType.Windows -> {
+        OSType.Windows, OSType.Linux -> {
             if (os.isOldOS) {
                 OldStyleTray(
                     state = state,
@@ -74,7 +74,7 @@ private fun ApplicationScope.OldStyleTray(
         tooltip = APP_NAME,
         onAction = {
             when (OSChecker.currentOS.type) {
-                OSType.Windows -> showWindowHandler()
+                OSType.Windows, OSType.Linux -> showWindowHandler()
                 OSType.MacOS -> {}
             }
         },
