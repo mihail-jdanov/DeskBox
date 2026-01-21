@@ -18,6 +18,7 @@ object SettingsManager {
     private const val LAUNCH_WITH_SYSTEM_KEY = "launchWithSystem"
     private const val MINIMIZE_ON_LAUNCH_KEY = "minimizeOnLaunch"
     private const val PREFERRED_THEME_KEY = "preferredTheme"
+    private const val CONFIG_OVERRIDE_VALUE_KEY = "configOverrideValue"
 
     private val prefs = Preferences.userRoot().node("DeskBox")
 
@@ -41,12 +42,17 @@ object SettingsManager {
         prefs.getInt(PREFERRED_THEME_KEY, 0)
     )
 
+    private val _configOverrideValue = MutableStateFlow(
+        prefs.get(CONFIG_OVERRIDE_VALUE_KEY, "")
+    )
+
     val windowSize = Size(720f, 540f)
     val selectedProfileID = _selectedProfileID.asStateFlow()
     val autostartProfile = _autostartProfile.asStateFlow()
     val launchWithSystem = _launchWithSystem.asStateFlow()
     val minimizeOnLaunch = _minimizeOnLaunch.asStateFlow()
     val preferredTheme = _preferredTheme.asStateFlow()
+    val configOverrideValue = _configOverrideValue.asStateFlow()
 
     fun setSelectedProfileID(id: String?) {
         _selectedProfileID.value = id ?: ""
@@ -84,6 +90,11 @@ object SettingsManager {
     fun setPreferredTheme(value: Int) {
         _preferredTheme.value = value
         prefs.putInt(PREFERRED_THEME_KEY, value)
+    }
+
+    fun setConfigOverrideValue(value: String) {
+        _configOverrideValue.value = value
+        prefs.put(CONFIG_OVERRIDE_VALUE_KEY, value)
     }
 
     fun saveWindowPosition(position: WindowPosition) {

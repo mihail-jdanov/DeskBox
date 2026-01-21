@@ -15,6 +15,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isAltPressed
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
@@ -26,9 +33,12 @@ import deskbox.composeapp.generated.resources.app_icon_raster
 import deskbox.composeapp.generated.resources.app_icon_vector
 import org.jetbrains.compose.resources.painterResource
 import org.mikhailzhdanov.deskbox.managers.AutorunManager
+import org.mikhailzhdanov.deskbox.managers.DialogsManager
 import org.mikhailzhdanov.deskbox.managers.ProfilesManager
 import org.mikhailzhdanov.deskbox.managers.SettingsManager
 import org.mikhailzhdanov.deskbox.managers.SingBoxManager
+import org.mikhailzhdanov.deskbox.modules.configOverrideValue.CONFIG_OVERRIDE_VALUE_SCREEN_ID
+import org.mikhailzhdanov.deskbox.modules.configOverrideValue.ConfigOverrideValueScreen
 import org.mikhailzhdanov.deskbox.modules.dialogs.DialogsScreen
 import org.mikhailzhdanov.deskbox.modules.main.MainScreen
 import org.mikhailzhdanov.deskbox.modules.tray.TrayMenu
@@ -40,7 +50,6 @@ import java.awt.Frame
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
-const val APP_ID = "org.mikhailzhdanov.deskbox"
 const val APP_NAME = "DeskBox"
 
 private var windowState = getWindowState()
@@ -156,7 +165,25 @@ fun main(args: Array<String>) = application {
         },
         undecorated = osType.needsCustomTitleBar(),
         transparent = osType.needsCustomTitleBar(),
-        resizable = false
+        resizable = false,
+        onKeyEvent = { event ->
+            if (event.type == KeyEventType.KeyDown &&
+                event.isCtrlPressed &&
+                event.isShiftPressed &&
+                event.isAltPressed &&
+                event.key == Key.O
+            ) {
+                val id = CONFIG_OVERRIDE_VALUE_SCREEN_ID
+                val onDismiss = { DialogsManager.removeDialog(id) }
+                DialogsManager.addDialog(
+                    id = id,
+                    onDismissRequest = onDismiss
+                ) {
+                    ConfigOverrideValueScreen(closeHandler = onDismiss)
+                }
+                true
+            } else false
+        }
     ) {
         composeWindow = window
 

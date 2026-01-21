@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import org.mikhailzhdanov.deskbox.LogLine
 import org.mikhailzhdanov.deskbox.Profile
 import org.mikhailzhdanov.deskbox.tools.ConfigTunPatcher
@@ -14,6 +17,7 @@ import org.mikhailzhdanov.deskbox.tools.OSChecker
 import org.mikhailzhdanov.deskbox.tools.OSType
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
 
 object SingBoxManager {
 
@@ -32,10 +36,11 @@ object SingBoxManager {
     private val _version = MutableStateFlow("")
 
     private var process: Process? = null
-    private var logJob: Job? = null
+    private var logsJob: Job? = null
     private var stopCompletion: (() -> Unit)? = null
 
     const val ERROR_PREFIX = "Error:"
+    const val CONFIG_OVERRIDE_VALUE_KEY = "deskbox_override_value"
 
     val logs = _logs.asStateFlow()
     val isRunning = _isRunning.asStateFlow()
@@ -51,12 +56,15 @@ object SingBoxManager {
     fun start(profile: Profile) {
         if (_isRunning.value || _version.value.startsWith(ERROR_PREFIX)) return
         killExistingCore()
-//        val config = configWithoutPlatformSpecificKeys(profile.config)
-//        configFile.writeText(config)
-        val config = ConfigTunPatcher.patchTunInterfaceName(
+        var config = configWithoutOverrideAndroidVPN(profile.config)
+        config = ConfigTunPatcher.patchTunInterfaceName(
             os = OSChecker.currentOS,
-            configJson = profile.config
+            configJson = config
         )
+        val overrideText = SettingsManager.configOverrideValue.value
+        if (overrideText.isNotEmpty()) {
+            config = config.replace(CONFIG_OVERRIDE_VALUE_KEY, overrideText)
+        }
         configFile.writeText(config)
         process = ProcessBuilder(coreFile.absolutePath, "run", "-c", configFile.absolutePath)
             .redirectErrorStream(true)
@@ -65,13 +73,15 @@ object SingBoxManager {
         _isRunning.value = true
         RemoteConfigsManager.startConfigUpdates(profile)
         lastStartedProfile = profile
-        logJob?.cancel()
-        logJob = scope.launch(Dispatchers.IO) {
-            process?.inputStream?.bufferedReader()?.useLines { lines ->
-                lines.forEach { line ->
-                    appendLog(line)
+        logsJob?.cancel()
+        logsJob = scope.launch(Dispatchers.IO) {
+            try {
+                process?.inputStream?.bufferedReader()?.useLines { lines ->
+                    lines.forEach { line ->
+                        appendLog(line)
+                    }
                 }
-            }
+            } catch (e: IOException) {}
             process?.waitFor()
             withContext(Dispatchers.Main) {
                 _isRunning.value = false
@@ -94,7 +104,7 @@ object SingBoxManager {
     }
 
     fun validateConfig(config: String): String {
-//        val config = configWithoutPlatformSpecificKeys(config)
+        val config = configWithoutOverrideAndroidVPN(config)
         configTempFile.writeText(config)
         val process = ProcessBuilder(coreFile.absolutePath, "check", "-c", configTempFile.absolutePath)
             .redirectErrorStream(true)
@@ -177,34 +187,30 @@ object SingBoxManager {
         }
     }
 
-//    private fun configWithoutPlatformSpecificKeys(config: String): String {
-//        val updConfig = configWithoutParamInRoute(
-//            config = config,
-//            paramName = "override_android_vpn" // Android only key
-//        )
-//        return configWithoutParamInRoute(
-//            config = updConfig,
-//            paramName = "default_mark" // Linux only key
-//        )
-//    }
-//
-//    private fun configWithoutParamInRoute(config: String, paramName: String): String {
-//        if (!config.contains(paramName)) return config
-//        try {
-//            val root = Json.parseToJsonElement(config)
-//            if (root !is JsonObject) return config
-//            val route = root["route"]
-//            if (route !is JsonObject) return config
-//            val updatedRoute = JsonObject(route.filterKeys { it != paramName })
-//            val updatedRoot = JsonObject(
-//                root.toMutableMap().apply {
-//                    put("route", updatedRoute)
-//                }
-//            )
-//            return Json.encodeToString(JsonElement.serializer(), updatedRoot)
-//        } catch (e: Exception) {
-//            return config
-//        }
-//    }
+    private fun configWithoutOverrideAndroidVPN(config: String): String {
+        return configWithoutParamInRoute(
+            config = config,
+            paramName = "override_android_vpn"
+        )
+    }
+
+    private fun configWithoutParamInRoute(config: String, paramName: String): String {
+        if (!config.contains(paramName)) return config
+        try {
+            val root = Json.parseToJsonElement(config)
+            if (root !is JsonObject) return config
+            val route = root["route"]
+            if (route !is JsonObject) return config
+            val updatedRoute = JsonObject(route.filterKeys { it != paramName })
+            val updatedRoot = JsonObject(
+                root.toMutableMap().apply {
+                    put("route", updatedRoute)
+                }
+            )
+            return Json.encodeToString(JsonElement.serializer(), updatedRoot)
+        } catch (e: Exception) {
+            return config
+        }
+    }
 
 }

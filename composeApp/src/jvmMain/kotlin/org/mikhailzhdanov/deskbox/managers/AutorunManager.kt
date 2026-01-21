@@ -4,7 +4,6 @@ import io.github.vinceglb.autolaunch.AutoLaunch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.mikhailzhdanov.deskbox.APP_ID
 import org.mikhailzhdanov.deskbox.APP_NAME
 import org.mikhailzhdanov.deskbox.tools.OSChecker
 import org.mikhailzhdanov.deskbox.tools.OSType
@@ -23,7 +22,7 @@ object AutorunManager {
 
     private val macAutoLaunch by lazy {
         AutoLaunch(
-            appPackageName = APP_ID,
+            appPackageName = "org.mikhailzhdanov.deskbox",
             appPath = pathToExecutable
         )
     }
@@ -183,14 +182,15 @@ object AutorunManager {
         val content = """
             [Desktop Entry]
             Name=$APP_NAME
-            Exec=${dir}bin/$APP_NAME
+            Exec=${dir}bin/$APP_NAME %u
             Path=$dir
             Icon=${dir}lib/$APP_NAME.png
             Terminal=false
-            Categories=Network
+            Categories=Network;
             Type=Application
             StartupNotify=false
             StartupWMClass=org-mikhailzhdanov-deskbox-MainKt
+            MimeType=x-scheme-handler/sing-box;
             X-GNOME-Autostart-enabled=true
         """.trimIndent()
         if (!linuxAutostartDir.exists()) linuxAutostartDir.mkdirs()
