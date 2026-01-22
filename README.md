@@ -3,7 +3,8 @@ Simple GUI app for [sing-box](https://github.com/SagerNet/sing-box) management.
 
 ## Platforms
 Windows 10+  
-macOS 10.13+
+macOS 12+ (Intel), macOS 13+ (Apple Silicon)  
+Ubuntu 20.04+
 
 ## Installation
 **Windows:**
@@ -14,20 +15,26 @@ Please note that the application requires administrator privileges to run.
 
 **macOS:**
 1) Download and unzip release archive for your architecture.
-2) Optional: Before installing, you can replace **sing-box** in the **DeskBox_1.3.0** folder with the [version](https://github.com/SagerNet/sing-box/releases) you need.
+2) Optional: Before installing, you can replace **sing-box** in unzipped folder with the [version](https://github.com/SagerNet/sing-box/releases) you need.
 3) Open **Terminal** and run the following command:
 ```
-xattr -r -d com.apple.quarantine ~/Downloads/DeskBox_1.3.0
+xattr -r -d com.apple.quarantine ~/Downloads/DeskBox_1.4.0
 ```
-4) Open the **DeskBox_1.3.0** folder and run **sing-box_install** to install sing-box to the working directory (you will be prompted for the administrator password to grant the necessary permissions).
+4) Open unzipped folder and run **sing-box_install** to install sing-box to the working directory (you will be prompted for the administrator password to grant the necessary permissions).
 5) Drag the **DeskBox** application to the **Applications** folder.
 
-[Config example](https://github.com/mihail-jdanov/DeskBox/blob/master/config-example.json)
-
-[sing-box documentation](https://sing-box.sagernet.org/configuration/)
+**Ubuntu:**
+1) Download and unzip release archive.
+2) Optional: Before installing, you can replace **sing-box** in unzipped folder with the [version](https://github.com/SagerNet/sing-box/releases) you need.
+3) Open unzipped folder and run **install.sh** script (you will be prompted for the administrator password to grant the necessary permissions to sing-box).
 
 ## Screenshots
 <img width="410" alt="image" src="https://github.com/user-attachments/assets/ba20728a-77f4-46d7-88bb-5bb7d9ab6b49" />
 <img width="410" alt="image" src="https://github.com/user-attachments/assets/0b817484-7169-4f10-ba9b-c21d5eac4349" />
 <img width="410" alt="image" src="https://github.com/user-attachments/assets/4d3a1fe8-179d-4488-b554-d4dd9c7197d7" />
 <img width="410" alt="image" src="https://github.com/user-attachments/assets/12ed427b-4311-45a6-b47d-93e116aeee66" />
+
+<br/><br/>
+[Config example](https://github.com/mihail-jdanov/DeskBox/blob/master/config-example.json)
+
+[sing-box documentation](https://sing-box.sagernet.org/configuration/)
