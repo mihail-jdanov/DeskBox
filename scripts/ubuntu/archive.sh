@@ -24,7 +24,8 @@ cd "$SCRIPT_DIR"
 # Создаём архив
 tar czf "$ARCHIVE_NAME" \
     --mode=755 "$RELEASE_NAME/install.sh" \
-    "$RELEASE_NAME/DeskBox"
+    "$RELEASE_NAME/DeskBox" \
+    "$RELEASE_NAME/sing-box"
 
 echo "Archive $ARCHIVE_NAME created successfully."
 
