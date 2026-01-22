@@ -128,7 +128,7 @@ fun main(args: Array<String>) = application {
 
         GlobalScreen.registerNativeHook()
         val listener = ConfigOverrideValueShortcutListener {
-            if (!windowVisible || composeWindow?.isFocused == false) {
+            if (!windowVisible) {
                 return@ConfigOverrideValueShortcutListener
             }
             val id = CONFIG_OVERRIDE_VALUE_SCREEN_ID
