@@ -15,17 +15,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.isAltPressed
-import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.isShiftPressed
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import com.github.kwhat.jnativehook.GlobalScreen
 import com.jthemedetecor.OsThemeDetector
 import com.kdroid.composetray.utils.SingleInstanceManager
 import deskbox.composeapp.generated.resources.Res
@@ -132,6 +126,22 @@ fun main(args: Array<String>) = application {
             }
         )
 
+        GlobalScreen.registerNativeHook()
+        val listener = ConfigOverrideValueShortcutListener {
+            if (!windowVisible || composeWindow?.isFocused == false) {
+                return@ConfigOverrideValueShortcutListener
+            }
+            val id = CONFIG_OVERRIDE_VALUE_SCREEN_ID
+            val onDismiss = { DialogsManager.removeDialog(id) }
+            DialogsManager.addDialog(
+                id = id,
+                onDismissRequest = onDismiss
+            ) {
+                ConfigOverrideValueScreen(closeHandler = onDismiss)
+            }
+        }
+        GlobalScreen.addNativeKeyListener(listener)
+
         initialSetupCompleted = true
     }
 
@@ -165,25 +175,7 @@ fun main(args: Array<String>) = application {
         },
         undecorated = osType.needsCustomTitleBar(),
         transparent = osType.needsCustomTitleBar(),
-        resizable = false,
-        onKeyEvent = { event ->
-            if (event.type == KeyEventType.KeyDown &&
-                event.isCtrlPressed &&
-                event.isShiftPressed &&
-                event.isAltPressed &&
-                event.key == Key.O
-            ) {
-                val id = CONFIG_OVERRIDE_VALUE_SCREEN_ID
-                val onDismiss = { DialogsManager.removeDialog(id) }
-                DialogsManager.addDialog(
-                    id = id,
-                    onDismissRequest = onDismiss
-                ) {
-                    ConfigOverrideValueScreen(closeHandler = onDismiss)
-                }
-                true
-            } else false
-        }
+        resizable = false
     ) {
         composeWindow = window
 
@@ -270,10 +262,8 @@ private fun restoreAndFocusWindow() {
         if (extendedState == Frame.ICONIFIED) {
             extendedState = Frame.NORMAL
         }
-        isAlwaysOnTop = true
         toFront()
         requestFocus()
-        isAlwaysOnTop = false
         if (OSChecker.currentOS.type == OSType.MacOS) {
             Desktop.getDesktop().requestForeground(true)
         }
