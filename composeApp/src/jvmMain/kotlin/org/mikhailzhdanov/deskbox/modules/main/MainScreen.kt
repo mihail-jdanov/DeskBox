@@ -1,5 +1,7 @@
 package org.mikhailzhdanov.deskbox.modules.main
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,6 +26,7 @@ import deskbox.composeapp.generated.resources.Res
 import deskbox.composeapp.generated.resources.lists
 import deskbox.composeapp.generated.resources.theme_auto
 import org.jetbrains.compose.resources.painterResource
+import org.mikhailzhdanov.deskbox.DEFAULT_ANIMATION_DURATION
 import org.mikhailzhdanov.deskbox.Theme
 import org.mikhailzhdanov.deskbox.modules.about.AboutScreen
 import org.mikhailzhdanov.deskbox.modules.profiles.ProfilesScreen
@@ -83,19 +86,25 @@ fun MainScreen() {
                     IconButton(
                         onClick = { viewModel.switchTheme() }
                     ) {
-                        when (state.preferredTheme) {
-                            Theme.Auto -> Icon(
-                                painter = painterResource(Res.drawable.theme_auto),
-                                contentDescription = null
-                            )
-                            Theme.Light -> Icon(
-                                imageVector = Icons.Outlined.WbSunny,
-                                contentDescription = null
-                            )
-                            Theme.Dark -> Icon(
-                                imageVector = Icons.Outlined.DarkMode,
-                                contentDescription = null
-                            )
+                        Crossfade(
+                            targetState = state.preferredTheme,
+                            animationSpec = tween(DEFAULT_ANIMATION_DURATION),
+                            label = "preferredTheme"
+                        ) { preferredTheme ->
+                            when (preferredTheme) {
+                                Theme.Auto -> Icon(
+                                    painter = painterResource(Res.drawable.theme_auto),
+                                    contentDescription = null
+                                )
+                                Theme.Light -> Icon(
+                                    imageVector = Icons.Outlined.WbSunny,
+                                    contentDescription = null
+                                )
+                                Theme.Dark -> Icon(
+                                    imageVector = Icons.Outlined.DarkMode,
+                                    contentDescription = null
+                                )
+                            }
                         }
                     }
                 }
@@ -106,10 +115,16 @@ fun MainScreen() {
                     .fillMaxSize()
                     .padding(start = 0.dp, top = 8.dp, end = 8.dp, bottom = 8.dp)
             ) {
-                when (state.selectedTab) {
-                    0 -> ControlScreen()
-                    1 -> ProfilesScreen()
-                    2 -> AboutScreen()
+                Crossfade(
+                    targetState = state.selectedTab,
+                    animationSpec = tween(DEFAULT_ANIMATION_DURATION),
+                    label = "selectedTab"
+                ) { selectedTab ->
+                    when (selectedTab) {
+                        0 -> ControlScreen()
+                        1 -> ProfilesScreen()
+                        2 -> AboutScreen()
+                    }
                 }
             }
         }

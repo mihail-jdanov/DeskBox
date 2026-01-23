@@ -21,8 +21,6 @@ import androidx.compose.ui.unit.dp
 import org.mikhailzhdanov.deskbox.managers.SingBoxManager
 import org.mikhailzhdanov.deskbox.views.CustomTextField
 
-const val CONFIG_OVERRIDE_VALUE_SCREEN_ID = "ConfigOverrideValueScreen"
-
 @Composable
 fun ConfigOverrideValueScreen(
     closeHandler: () -> Unit

@@ -6,5 +6,6 @@ import org.mikhailzhdanov.deskbox.managers.DialogData
 data class DialogsUIState(
     val alertData: AlertData?,
     val isLoading: Boolean,
-    val dialogs: List<DialogData>
+    val dialogs: List<DialogData>,
+    val showConfigOverrideValueDialog: Boolean
 )

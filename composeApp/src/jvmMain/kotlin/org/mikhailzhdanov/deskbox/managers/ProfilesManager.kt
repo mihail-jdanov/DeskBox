@@ -24,7 +24,7 @@ object ProfilesManager {
     private val profilesFile = File(OSChecker.currentOS.type.getWorkingDir(), PROFILES_FILE_NAME)
     private val json = Json { prettyPrint = true }
     private val _profiles = MutableStateFlow(emptyList<Profile>())
-    private val _profileToImport: MutableStateFlow<Profile?> = MutableStateFlow(null)
+    private val _profileToImport = MutableStateFlow<Profile?>(null)
 
     val profiles = _profiles.asStateFlow()
     val profileToImport = _profileToImport.asStateFlow()

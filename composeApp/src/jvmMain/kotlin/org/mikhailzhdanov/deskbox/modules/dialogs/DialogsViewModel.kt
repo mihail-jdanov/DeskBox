@@ -17,7 +17,8 @@ class DialogsViewModel: ViewModel() {
         DialogsUIState(
             alertData = null,
             isLoading = false,
-            dialogs = emptyList()
+            dialogs = emptyList(),
+            showConfigOverrideValueDialog = false
         )
     )
 
@@ -28,15 +29,17 @@ class DialogsViewModel: ViewModel() {
             combine(
                 DialogsManager.alertData,
                 DialogsManager.isLoading,
-                DialogsManager.dialogs
-            ) { alertData, isLoading, dialogs ->
-                ObservedValues(alertData, isLoading, dialogs)
+                DialogsManager.dialogs,
+                DialogsManager.showConfigOverrideValueDialog
+            ) { alertData, isLoading, dialogs, showConfigOverrideValueDialog ->
+                ObservedValues(alertData, isLoading, dialogs, showConfigOverrideValueDialog)
             }.collect { values ->
                 _uiState.update { current ->
                     current.copy(
                         alertData = values.alertData,
                         isLoading = values.isLoading,
-                        dialogs = values.dialogs
+                        dialogs = values.dialogs,
+                        showConfigOverrideValueDialog = values.showConfigOverrideValueDialog
                     )
                 }
             }
@@ -47,10 +50,15 @@ class DialogsViewModel: ViewModel() {
         DialogsManager.setAlert(null)
     }
 
+    fun hideConfigOverrideValueDialog() {
+        DialogsManager.setConfigOverrideValueDialog(false)
+    }
+
 }
 
 private data class ObservedValues(
     val alertData: AlertData?,
     val isLoading: Boolean,
-    val dialogs: List<DialogData>
+    val dialogs: List<DialogData>,
+    val showConfigOverrideValueDialog: Boolean
 )

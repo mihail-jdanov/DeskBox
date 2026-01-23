@@ -1,5 +1,7 @@
 package org.mikhailzhdanov.deskbox
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,8 +33,6 @@ import org.mikhailzhdanov.deskbox.managers.DialogsManager
 import org.mikhailzhdanov.deskbox.managers.ProfilesManager
 import org.mikhailzhdanov.deskbox.managers.SettingsManager
 import org.mikhailzhdanov.deskbox.managers.SingBoxManager
-import org.mikhailzhdanov.deskbox.modules.configOverrideValue.CONFIG_OVERRIDE_VALUE_SCREEN_ID
-import org.mikhailzhdanov.deskbox.modules.configOverrideValue.ConfigOverrideValueScreen
 import org.mikhailzhdanov.deskbox.modules.dialogs.DialogsScreen
 import org.mikhailzhdanov.deskbox.modules.main.MainScreen
 import org.mikhailzhdanov.deskbox.modules.tray.TrayMenu
@@ -45,6 +45,7 @@ import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
 const val APP_NAME = "DeskBox"
+const val DEFAULT_ANIMATION_DURATION = 200
 
 private var windowState = getWindowState()
 private var composeWindow: ComposeWindow? = null
@@ -131,14 +132,7 @@ fun main(args: Array<String>) = application {
             if (!windowVisible || composeWindow?.isFocused == false) {
                 return@ConfigOverrideValueShortcutListener
             }
-            val id = CONFIG_OVERRIDE_VALUE_SCREEN_ID
-            val onDismiss = { DialogsManager.removeDialog(id) }
-            DialogsManager.addDialog(
-                id = id,
-                onDismissRequest = onDismiss
-            ) {
-                ConfigOverrideValueScreen(closeHandler = onDismiss)
-            }
+            DialogsManager.setConfigOverrideValueDialog(true)
         }
         GlobalScreen.addNativeKeyListener(listener)
 
@@ -201,47 +195,56 @@ fun main(args: Array<String>) = application {
             }
         }
 
-        MaterialTheme(
-            colorScheme = when (Theme.fromRawValue(theme)) {
-                Theme.Auto -> {
-                    if (isSystemInDarkTheme) darkColorScheme else lightColorScheme
-                }
-                Theme.Light -> lightColorScheme
-                Theme.Dark -> darkColorScheme
+        val colorScheme = when (Theme.fromRawValue(theme)) {
+            Theme.Auto -> {
+                if (isSystemInDarkTheme) darkColorScheme else lightColorScheme
             }
-        ) {
-            Surface(
-                shape = RoundedCornerShape(osType.getWindowCornerRadius().dp)
-            ) {
-                Column {
-                    when (osType) {
-                        OSType.Windows, OSType.Linux -> {
-                            CustomTitleBar(
-                                isWindows = osType == OSType.Windows,
-                                title = APP_NAME,
-                                icon = painterResource(windowIcon),
-                                closeAction = closeAction
-                            )
-                        }
-                        OSType.MacOS -> {
-                            Box(modifier = Modifier.height(28.dp))
-                        }
-                    }
 
-                    Box(
-                        modifier = Modifier.border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(
-                                topStart = 0.dp,
-                                topEnd = 0.dp,
-                                bottomEnd = 8.dp,
-                                bottomStart = 8.dp
+            Theme.Light -> lightColorScheme
+            Theme.Dark -> darkColorScheme
+        }
+
+        Crossfade(
+            targetState = colorScheme,
+            animationSpec = tween(durationMillis = DEFAULT_ANIMATION_DURATION),
+            label = "colorScheme"
+        ) { colorScheme ->
+            MaterialTheme(
+                colorScheme = colorScheme
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(osType.getWindowCornerRadius().dp)
+                ) {
+                    Column {
+                        when (osType) {
+                            OSType.Windows, OSType.Linux -> {
+                                CustomTitleBar(
+                                    isWindows = osType == OSType.Windows,
+                                    title = APP_NAME,
+                                    icon = painterResource(windowIcon),
+                                    closeAction = closeAction
+                                )
+                            }
+                            OSType.MacOS -> {
+                                Box(modifier = Modifier.height(28.dp))
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier.border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = RoundedCornerShape(
+                                    topStart = 0.dp,
+                                    topEnd = 0.dp,
+                                    bottomEnd = 8.dp,
+                                    bottomStart = 8.dp
+                                )
                             )
-                        )
-                    ) {
-                        MainScreen()
-                        DialogsScreen()
+                        ) {
+                            MainScreen()
+                            DialogsScreen()
+                        }
                     }
                 }
             }

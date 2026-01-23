@@ -7,13 +7,15 @@ import kotlinx.coroutines.flow.update
 
 object DialogsManager {
 
-    private val _alertData: MutableStateFlow<AlertData?> = MutableStateFlow(null)
+    private val _alertData = MutableStateFlow<AlertData?>(null)
     private val _isLoading = MutableStateFlow(false)
     private val _dialogs = MutableStateFlow(emptyList<DialogData>())
+    private val _showConfigOverrideValueDialog = MutableStateFlow(false)
 
     val alertData = _alertData.asStateFlow()
     val isLoading = _isLoading.asStateFlow()
     val dialogs = _dialogs.asStateFlow()
+    val showConfigOverrideValueDialog = _showConfigOverrideValueDialog.asStateFlow()
 
     fun setAlert(text: String) {
         _alertData.value = AlertData(text = text)
@@ -40,6 +42,10 @@ object DialogsManager {
         _dialogs.update { dialogs ->
             dialogs.filter { it.id != id }
         }
+    }
+
+    fun setConfigOverrideValueDialog(isVisible: Boolean) {
+        _showConfigOverrideValueDialog.value = isVisible
     }
 
 }
