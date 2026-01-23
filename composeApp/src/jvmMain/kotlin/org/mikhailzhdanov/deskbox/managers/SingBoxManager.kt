@@ -131,11 +131,13 @@ object SingBoxManager {
         return validateConfig(config).isEmpty()
     }
 
-    private fun appendLog(line: String) {
+    private suspend fun appendLog(line: String) {
         if (line.trim().isEmpty()) return
         val logLine = LogLine(value = line)
         val newLines = (_logs.value + logLine).takeLast(MAX_LOG_LINES)
-        _logs.value = newLines
+        withContext(Dispatchers.Main) {
+            _logs.value = newLines
+        }
     }
 
     private fun killExistingCore() {

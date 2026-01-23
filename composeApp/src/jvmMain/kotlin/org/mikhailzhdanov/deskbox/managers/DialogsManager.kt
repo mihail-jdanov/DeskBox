@@ -1,21 +1,33 @@
 package org.mikhailzhdanov.deskbox.managers
 
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 object DialogsManager {
 
+    private const val TOAST_TIMEOUT = 2000L
+
+    private val scope = CoroutineScope(Dispatchers.Main)
     private val _alertData = MutableStateFlow<AlertData?>(null)
     private val _isLoading = MutableStateFlow(false)
     private val _dialogs = MutableStateFlow(emptyList<DialogData>())
     private val _showConfigOverrideValueDialog = MutableStateFlow(false)
+    private val _toastText = MutableStateFlow("")
+
+    private var toastResetJob: Job? = null
 
     val alertData = _alertData.asStateFlow()
     val isLoading = _isLoading.asStateFlow()
     val dialogs = _dialogs.asStateFlow()
     val showConfigOverrideValueDialog = _showConfigOverrideValueDialog.asStateFlow()
+    val toastText = _toastText.asStateFlow()
 
     fun setAlert(text: String) {
         _alertData.value = AlertData(text = text)
@@ -46,6 +58,17 @@ object DialogsManager {
 
     fun setConfigOverrideValueDialog(isVisible: Boolean) {
         _showConfigOverrideValueDialog.value = isVisible
+    }
+
+    fun setToastText(text: String) {
+        _toastText.value = text
+        toastResetJob?.cancel()
+        if (text.trim().isNotEmpty()) {
+            toastResetJob = scope.launch {
+                delay(TOAST_TIMEOUT)
+                _toastText.value = ""
+            }
+        }
     }
 
 }

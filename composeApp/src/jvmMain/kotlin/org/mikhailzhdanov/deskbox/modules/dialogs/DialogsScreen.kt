@@ -14,6 +14,7 @@ import org.mikhailzhdanov.deskbox.managers.DialogData
 import org.mikhailzhdanov.deskbox.modules.configOverrideValue.ConfigOverrideValueScreen
 import org.mikhailzhdanov.deskbox.views.CustomAlertDialog
 import org.mikhailzhdanov.deskbox.views.CustomDialog
+import org.mikhailzhdanov.deskbox.views.Toast
 
 @Composable
 fun DialogsScreen() {
@@ -82,6 +83,16 @@ fun DialogsScreen() {
                 onDismissRequest = onDismiss,
                 content = data.content
             )
+        }
+    }
+
+    Crossfade(
+        targetState = state.toastText,
+        animationSpec = tween(DEFAULT_ANIMATION_DURATION),
+        label = "toastText"
+    ) { toastText ->
+        if (toastText.trim().isNotEmpty()) {
+            Toast(toastText)
         }
     }
 }

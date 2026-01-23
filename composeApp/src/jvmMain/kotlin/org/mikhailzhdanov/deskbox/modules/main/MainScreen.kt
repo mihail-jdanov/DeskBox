@@ -86,25 +86,19 @@ fun MainScreen() {
                     IconButton(
                         onClick = { viewModel.switchTheme() }
                     ) {
-                        Crossfade(
-                            targetState = state.preferredTheme,
-                            animationSpec = tween(DEFAULT_ANIMATION_DURATION),
-                            label = "preferredTheme"
-                        ) { preferredTheme ->
-                            when (preferredTheme) {
-                                Theme.Auto -> Icon(
-                                    painter = painterResource(Res.drawable.theme_auto),
-                                    contentDescription = null
-                                )
-                                Theme.Light -> Icon(
-                                    imageVector = Icons.Outlined.WbSunny,
-                                    contentDescription = null
-                                )
-                                Theme.Dark -> Icon(
-                                    imageVector = Icons.Outlined.DarkMode,
-                                    contentDescription = null
-                                )
-                            }
+                        when (state.preferredTheme) {
+                            Theme.Auto -> Icon(
+                                painter = painterResource(Res.drawable.theme_auto),
+                                contentDescription = null
+                            )
+                            Theme.Light -> Icon(
+                                imageVector = Icons.Outlined.WbSunny,
+                                contentDescription = null
+                            )
+                            Theme.Dark -> Icon(
+                                imageVector = Icons.Outlined.DarkMode,
+                                contentDescription = null
+                            )
                         }
                     }
                 }

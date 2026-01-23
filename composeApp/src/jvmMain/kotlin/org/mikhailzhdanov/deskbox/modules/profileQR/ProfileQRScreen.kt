@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.unit.dp
 import org.jetbrains.skia.Image
 import org.mikhailzhdanov.deskbox.Profile
+import org.mikhailzhdanov.deskbox.managers.DialogsManager
 import org.mikhailzhdanov.deskbox.views.TitledView
 import qrcode.QRCode
 import java.awt.Toolkit
@@ -71,7 +72,11 @@ fun ProfileQRScreen(
                 )
 
                 Button(
-                    onClick = { copyImageToClipboard(image) },
+                    onClick = {
+                        copyImageToClipboard(image)
+                        closeHandler()
+                        DialogsManager.setToastText("QR code copied to clipboard")
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp)
@@ -80,7 +85,11 @@ fun ProfileQRScreen(
                 }
 
                 FilledTonalButton(
-                    onClick = { copyTextToClipboard(link) },
+                    onClick = {
+                        copyTextToClipboard(link)
+                        closeHandler()
+                        DialogsManager.setToastText("Link copied to clipboard")
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Copy link")

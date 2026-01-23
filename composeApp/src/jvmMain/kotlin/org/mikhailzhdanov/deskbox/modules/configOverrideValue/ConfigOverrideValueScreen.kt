@@ -13,10 +13,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import org.mikhailzhdanov.deskbox.managers.SingBoxManager
 import org.mikhailzhdanov.deskbox.views.CustomTextField
@@ -27,6 +30,11 @@ fun ConfigOverrideValueScreen(
 ) {
     val viewModel = remember { ConfigOverrideValueViewModel(closeHandler) }
     val state by viewModel.uiState.collectAsState()
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
 
     Surface(
         modifier = Modifier
@@ -48,7 +56,9 @@ fun ConfigOverrideValueScreen(
                 onValueChange = { value ->
                     viewModel.setOverrideText(value)
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
                 maxLength = 200,
                 placeholder = "Enter value"
             )

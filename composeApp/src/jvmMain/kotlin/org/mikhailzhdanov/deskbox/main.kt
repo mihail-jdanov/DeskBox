@@ -1,7 +1,5 @@
 package org.mikhailzhdanov.deskbox
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -195,56 +193,47 @@ fun main(args: Array<String>) = application {
             }
         }
 
-        val colorScheme = when (Theme.fromRawValue(theme)) {
-            Theme.Auto -> {
-                if (isSystemInDarkTheme) darkColorScheme else lightColorScheme
+        MaterialTheme(
+            colorScheme = when (Theme.fromRawValue(theme)) {
+                Theme.Auto -> {
+                    if (isSystemInDarkTheme) darkColorScheme else lightColorScheme
+                }
+                Theme.Light -> lightColorScheme
+                Theme.Dark -> darkColorScheme
             }
-
-            Theme.Light -> lightColorScheme
-            Theme.Dark -> darkColorScheme
-        }
-
-        Crossfade(
-            targetState = colorScheme,
-            animationSpec = tween(durationMillis = DEFAULT_ANIMATION_DURATION),
-            label = "colorScheme"
-        ) { colorScheme ->
-            MaterialTheme(
-                colorScheme = colorScheme
+        ) {
+            Surface(
+                shape = RoundedCornerShape(osType.getWindowCornerRadius().dp)
             ) {
-                Surface(
-                    shape = RoundedCornerShape(osType.getWindowCornerRadius().dp)
-                ) {
-                    Column {
-                        when (osType) {
-                            OSType.Windows, OSType.Linux -> {
-                                CustomTitleBar(
-                                    isWindows = osType == OSType.Windows,
-                                    title = APP_NAME,
-                                    icon = painterResource(windowIcon),
-                                    closeAction = closeAction
-                                )
-                            }
-                            OSType.MacOS -> {
-                                Box(modifier = Modifier.height(28.dp))
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier.border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                shape = RoundedCornerShape(
-                                    topStart = 0.dp,
-                                    topEnd = 0.dp,
-                                    bottomEnd = 8.dp,
-                                    bottomStart = 8.dp
-                                )
+                Column {
+                    when (osType) {
+                        OSType.Windows, OSType.Linux -> {
+                            CustomTitleBar(
+                                isWindows = osType == OSType.Windows,
+                                title = APP_NAME,
+                                icon = painterResource(windowIcon),
+                                closeAction = closeAction
                             )
-                        ) {
-                            MainScreen()
-                            DialogsScreen()
                         }
+                        OSType.MacOS -> {
+                            Box(modifier = Modifier.height(28.dp))
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier.border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(
+                                topStart = 0.dp,
+                                topEnd = 0.dp,
+                                bottomEnd = 8.dp,
+                                bottomStart = 8.dp
+                            )
+                        )
+                    ) {
+                        MainScreen()
+                        DialogsScreen()
                     }
                 }
             }

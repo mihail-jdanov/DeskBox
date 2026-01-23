@@ -18,7 +18,8 @@ class DialogsViewModel: ViewModel() {
             alertData = null,
             isLoading = false,
             dialogs = emptyList(),
-            showConfigOverrideValueDialog = false
+            showConfigOverrideValueDialog = false,
+            toastText = ""
         )
     )
 
@@ -30,16 +31,18 @@ class DialogsViewModel: ViewModel() {
                 DialogsManager.alertData,
                 DialogsManager.isLoading,
                 DialogsManager.dialogs,
-                DialogsManager.showConfigOverrideValueDialog
-            ) { alertData, isLoading, dialogs, showConfigOverrideValueDialog ->
-                ObservedValues(alertData, isLoading, dialogs, showConfigOverrideValueDialog)
+                DialogsManager.showConfigOverrideValueDialog,
+                DialogsManager.toastText
+            ) { alertData, isLoading, dialogs, showConfigOverrideValueDialog, toastText ->
+                ObservedValues(alertData, isLoading, dialogs, showConfigOverrideValueDialog, toastText)
             }.collect { values ->
                 _uiState.update { current ->
                     current.copy(
                         alertData = values.alertData,
                         isLoading = values.isLoading,
                         dialogs = values.dialogs,
-                        showConfigOverrideValueDialog = values.showConfigOverrideValueDialog
+                        showConfigOverrideValueDialog = values.showConfigOverrideValueDialog,
+                        toastText = values.toastText
                     )
                 }
             }
@@ -60,5 +63,6 @@ private data class ObservedValues(
     val alertData: AlertData?,
     val isLoading: Boolean,
     val dialogs: List<DialogData>,
-    val showConfigOverrideValueDialog: Boolean
+    val showConfigOverrideValueDialog: Boolean,
+    val toastText: String
 )
