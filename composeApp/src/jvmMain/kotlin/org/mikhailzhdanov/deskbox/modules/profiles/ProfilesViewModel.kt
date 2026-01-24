@@ -99,7 +99,9 @@ class ProfilesViewModel: ViewModel() {
                 }
             } catch (e: Exception) {
                 DialogsManager.setLoading(false)
-                DialogsManager.setAlert(e.message ?: "")
+                DialogsManager.setAlert(
+                    ("Request error" + "\n\n" + (e.message ?: "")).trim()
+                )
             }
         }
     }

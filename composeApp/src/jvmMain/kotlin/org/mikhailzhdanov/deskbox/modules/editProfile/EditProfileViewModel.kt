@@ -115,13 +115,13 @@ class EditProfileViewModel(
     fun save() {
         fun getProfile(): Profile { return _uiState.value.profile }
         if (getProfile().isRemote) {
-            val isURLChanged = getProfile().remoteURL != profile.remoteURL
+            val isURLChanged = getProfile().remoteURL.trim() != profile.remoteURL
             if (isURLChanged || profile.config.isEmpty()) {
                 DialogsManager.setLoading(true)
                 viewModelScope.launch {
                     try {
                         val config = RemoteConfigsFetcher.fetchConfig(
-                            getProfile().remoteURL
+                            getProfile().remoteURL.trim()
                         )
                         DialogsManager.setLoading(false)
                         val configError = SingBoxManager.validateConfig(config)
@@ -138,7 +138,9 @@ class EditProfileViewModel(
                         }
                     } catch (e: Exception) {
                         DialogsManager.setLoading(false)
-                        DialogsManager.setAlert(e.message ?: "")
+                        DialogsManager.setAlert(
+                            ("Request error" + "\n\n" + (e.message ?: "")).trim()
+                        )
                     }
                 }
             } else {
