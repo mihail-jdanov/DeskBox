@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
@@ -25,6 +26,7 @@ import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
@@ -59,6 +61,7 @@ private val focusRequester = FocusRequester()
 private var windowState = getWindowState()
 private var composeWindow: ComposeWindow? = null
 private var initialSetupCompleted = false
+private var focusManager: FocusManager? = null
 
 fun main(args: Array<String>) = application {
     val minimizeOnLaunch = SettingsManager.minimizeOnLaunch.value
@@ -183,6 +186,7 @@ fun main(args: Array<String>) = application {
         }
     ) {
         composeWindow = window
+        focusManager = LocalFocusManager.current
 
         if (osType == OSType.MacOS) {
             window.rootPane.putClientProperty("apple.awt.fullWindowContent", true)
@@ -276,6 +280,7 @@ private fun restoreAndFocusWindow() {
     if (OSChecker.currentOS.type == OSType.MacOS) {
         Desktop.getDesktop().requestForeground(true)
     }
+    focusManager?.clearFocus(true)
     focusRequester.requestFocus()
 }
 
