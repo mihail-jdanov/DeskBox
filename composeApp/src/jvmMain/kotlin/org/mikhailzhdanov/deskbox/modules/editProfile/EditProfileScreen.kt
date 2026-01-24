@@ -151,7 +151,7 @@ fun EditProfileScreen(
                     modifier = Modifier.padding(top = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (state.isConfigInvalid) {
+                    if (state.configButtonMode == ConfigButtonMode.Edit && state.isConfigInvalid) {
                         Text(
                             text = viewModel.invalidConfigTitle,
                             color = MaterialTheme.colorScheme.error
