@@ -1,6 +1,7 @@
 package org.mikhailzhdanov.deskbox
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
@@ -15,6 +16,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isAltPressed
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
@@ -44,6 +54,8 @@ import kotlin.io.path.writeText
 
 const val APP_NAME = "DeskBox"
 const val DEFAULT_ANIMATION_DURATION = 200
+
+private val focusRequester = FocusRequester()
 
 private var windowState = getWindowState()
 private var composeWindow: ComposeWindow? = null
@@ -125,14 +137,16 @@ fun main(args: Array<String>) = application {
             }
         )
 
-        GlobalScreen.registerNativeHook()
-        val listener = ConfigOverrideValueShortcutListener {
-            if (!windowVisible || composeWindow?.isFocused == false) {
-                return@ConfigOverrideValueShortcutListener
+        if (osType != OSType.MacOS) {
+            GlobalScreen.registerNativeHook()
+            val listener = ConfigOverrideValueShortcutListener {
+                if (!windowVisible || composeWindow?.isFocused == false) {
+                    return@ConfigOverrideValueShortcutListener
+                }
+                DialogsManager.setConfigOverrideValueDialog(true)
             }
-            DialogsManager.setConfigOverrideValueDialog(true)
+            GlobalScreen.addNativeKeyListener(listener)
         }
-        GlobalScreen.addNativeKeyListener(listener)
 
         initialSetupCompleted = true
     }
@@ -167,7 +181,20 @@ fun main(args: Array<String>) = application {
         },
         undecorated = osType.needsCustomTitleBar(),
         transparent = osType.needsCustomTitleBar(),
-        resizable = false
+        resizable = false,
+        onKeyEvent = { event ->
+            if (osType == OSType.MacOS) {
+                if (event.type == KeyEventType.KeyDown &&
+                    event.isCtrlPressed &&
+                    event.isShiftPressed &&
+                    event.isAltPressed &&
+                    event.key == Key.O
+                ) {
+                    DialogsManager.setConfigOverrideValueDialog(true)
+                    true
+                } else false
+            } else false
+        }
     ) {
         composeWindow = window
 
@@ -221,16 +248,19 @@ fun main(args: Array<String>) = application {
                     }
 
                     Box(
-                        modifier = Modifier.border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(
-                                topStart = 0.dp,
-                                topEnd = 0.dp,
-                                bottomEnd = 8.dp,
-                                bottomStart = 8.dp
+                        modifier = Modifier
+                            .focusRequester(focusRequester)
+                            .focusable()
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = RoundedCornerShape(
+                                    topStart = 0.dp,
+                                    topEnd = 0.dp,
+                                    bottomEnd = 8.dp,
+                                    bottomStart = 8.dp
+                                )
                             )
-                        )
                     ) {
                         MainScreen()
                         DialogsScreen()
@@ -256,10 +286,11 @@ private fun restoreAndFocusWindow() {
         }
         toFront()
         requestFocus()
-        if (OSChecker.currentOS.type == OSType.MacOS) {
-            Desktop.getDesktop().requestForeground(true)
-        }
     }
+    if (OSChecker.currentOS.type == OSType.MacOS) {
+        Desktop.getDesktop().requestForeground(true)
+    }
+    focusRequester.requestFocus()
 }
 
 private fun registerSingBoxLinks() {

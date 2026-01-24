@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -20,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import org.mikhailzhdanov.deskbox.managers.SingBoxManager
 import org.mikhailzhdanov.deskbox.views.CustomTextField
@@ -60,7 +62,12 @@ fun ConfigOverrideValueScreen(
                     .fillMaxWidth()
                     .focusRequester(focusRequester),
                 maxLength = 200,
-                placeholder = "Enter value"
+                placeholder = "Enter value",
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                onKeyboardAction = {
+                    viewModel.saveOverrideText()
+                    closeHandler()
+                }
             )
 
             Row(

@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.KeyboardActionHandler
 import androidx.compose.foundation.text.input.TextFieldDecorator
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
@@ -37,6 +39,8 @@ fun CustomTextField(
     fontFamily: FontFamily = FontFamily.Default,
     leftAligned: Boolean = true,
     type: CustomTextFieldType = CustomTextFieldType.SingleLine,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    onKeyboardAction: KeyboardActionHandler? = null,
     scrollState: ScrollState = rememberScrollState(),
     inputFilter: (String) -> String = { it }
 ) {
@@ -86,6 +90,8 @@ fun CustomTextField(
                 fontFamily = fontFamily,
                 textAlign = if (leftAligned) TextAlign.Start else TextAlign.End
             ),
+            keyboardOptions = keyboardOptions,
+            onKeyboardAction = onKeyboardAction,
             lineLimits = if (type == CustomTextFieldType.SingleLine) {
                 TextFieldLineLimits.SingleLine
             } else {
