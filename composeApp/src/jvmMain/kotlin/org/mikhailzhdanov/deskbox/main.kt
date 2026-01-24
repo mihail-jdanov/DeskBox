@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
-import com.github.kwhat.jnativehook.GlobalScreen
 import com.jthemedetecor.OsThemeDetector
 import com.kdroid.composetray.utils.SingleInstanceManager
 import deskbox.composeapp.generated.resources.Res
@@ -137,17 +136,6 @@ fun main(args: Array<String>) = application {
             }
         )
 
-        if (osType != OSType.MacOS) {
-            GlobalScreen.registerNativeHook()
-            val listener = ConfigOverrideValueShortcutListener {
-                if (!windowVisible || composeWindow?.isFocused == false) {
-                    return@ConfigOverrideValueShortcutListener
-                }
-                DialogsManager.setConfigOverrideValueDialog(true)
-            }
-            GlobalScreen.addNativeKeyListener(listener)
-        }
-
         initialSetupCompleted = true
     }
 
@@ -183,16 +171,14 @@ fun main(args: Array<String>) = application {
         transparent = osType.needsCustomTitleBar(),
         resizable = false,
         onKeyEvent = { event ->
-            if (osType == OSType.MacOS) {
-                if (event.type == KeyEventType.KeyDown &&
-                    event.isCtrlPressed &&
-                    event.isShiftPressed &&
-                    event.isAltPressed &&
-                    event.key == Key.O
-                ) {
-                    DialogsManager.setConfigOverrideValueDialog(true)
-                    true
-                } else false
+            if (event.type == KeyEventType.KeyDown &&
+                event.isCtrlPressed &&
+                event.isShiftPressed &&
+                event.isAltPressed &&
+                event.key == Key.O
+            ) {
+                DialogsManager.setConfigOverrideValueDialog(true)
+                true
             } else false
         }
     ) {

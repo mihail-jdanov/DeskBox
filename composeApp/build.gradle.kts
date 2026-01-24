@@ -43,7 +43,6 @@ kotlin {
             implementation("com.github.Dansoftowner:jSystemThemeDetector:3.9.1")
             implementation("net.java.dev.jna:jna-jpms:5.17.0")
             implementation("io.github.vinceglb:auto-launch:0.7.0")
-            implementation(files("libs/jnativehook-2.2.2.jar"))
         }
     }
 }
