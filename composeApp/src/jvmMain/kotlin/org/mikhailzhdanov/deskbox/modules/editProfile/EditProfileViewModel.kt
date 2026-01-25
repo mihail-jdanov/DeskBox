@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mikhailzhdanov.deskbox.Profile
+import org.mikhailzhdanov.deskbox.extensions.isValidIP
 import org.mikhailzhdanov.deskbox.managers.DialogsManager
 import org.mikhailzhdanov.deskbox.managers.ProfilesManager
 import org.mikhailzhdanov.deskbox.tools.RemoteConfigsFetcher
@@ -14,6 +15,7 @@ import org.mikhailzhdanov.deskbox.managers.SingBoxManager
 import org.mikhailzhdanov.deskbox.modules.editConfig.EDIT_CONFIG_SCREEN_ID
 import org.mikhailzhdanov.deskbox.modules.editConfig.EditConfigScreen
 import org.mikhailzhdanov.deskbox.tools.JsonFormatter
+import org.mikhailzhdanov.deskbox.tools.OSChecker
 import org.mikhailzhdanov.deskbox.tools.TimestampFormatter
 
 class EditProfileViewModel(
@@ -30,6 +32,7 @@ class EditProfileViewModel(
         )
     )
 
+    private val osType = OSChecker.currentOS.type
     private val nameMaxChars = 200
     private val defaultConfig = "{}"
     private val defaultAutoUpdateInterval: Long = 60
@@ -41,6 +44,11 @@ class EditProfileViewModel(
             return ProfilesManager.profiles.value.contains(profile)
         }
 
+    val isLocalDNSOverrideRequired: Boolean
+        get() {
+            return osType.isLocalDNSOverrideRequired()
+        }
+
     val invalidConfigTitle = "Invalid config"
 
     init {
@@ -49,6 +57,9 @@ class EditProfileViewModel(
         }
         if (profile.autoUpdateInterval == null) {
             setAutoUpdateInterval(defaultAutoUpdateInterval)
+        }
+        if (profile.localDNSOverride.isNullOrEmpty() && osType.isLocalDNSOverrideRequired()) {
+            setLocalDNSOverride(SingBoxManager.DEFAULT_LOCAL_DNS)
         }
     }
 
@@ -85,6 +96,13 @@ class EditProfileViewModel(
     fun setAutoUpdateInterval(autoUpdateInterval: Long?) {
         _uiState.update {
             it.copy(profile = it.profile.copy(autoUpdateInterval = autoUpdateInterval))
+        }
+        validateProfile()
+    }
+
+    fun setLocalDNSOverride(localDNSOverride: String) {
+        _uiState.update {
+            it.copy(profile = it.profile.copy(localDNSOverride = localDNSOverride))
         }
         validateProfile()
     }
@@ -190,6 +208,14 @@ class EditProfileViewModel(
             }
         } else {
             if (_uiState.value.isConfigInvalid) {
+                isValid = false
+            }
+        }
+        if (isLocalDNSOverrideRequired) {
+            val dns = _uiState.value.profile.localDNSOverride
+            if (dns == null) {
+                isValid = false
+            } else if (!dns.isValidIP()) {
                 isValid = false
             }
         }

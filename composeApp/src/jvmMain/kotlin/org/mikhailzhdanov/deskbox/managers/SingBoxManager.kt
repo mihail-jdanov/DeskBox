@@ -7,12 +7,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.mikhailzhdanov.deskbox.LogLine
 import org.mikhailzhdanov.deskbox.Profile
 import org.mikhailzhdanov.deskbox.tools.ConfigTunPatcher
+import org.mikhailzhdanov.deskbox.tools.JsonFormatter
 import org.mikhailzhdanov.deskbox.tools.OSChecker
 import org.mikhailzhdanov.deskbox.tools.OSType
 import java.io.File
@@ -41,6 +51,7 @@ object SingBoxManager {
 
     const val ERROR_PREFIX = "Error:"
     const val CONFIG_OVERRIDE_VALUE_KEY = "deskbox_override_value"
+    const val DEFAULT_LOCAL_DNS = "8.8.8.8"
 
     val logs = _logs.asStateFlow()
     val isRunning = _isRunning.asStateFlow()
@@ -65,6 +76,22 @@ object SingBoxManager {
         if (overrideText.isNotEmpty()) {
             config = config.replace(CONFIG_OVERRIDE_VALUE_KEY, overrideText)
         }
+        var localDNSOverride = profile.localDNSOverride
+        if (localDNSOverride.isNullOrEmpty() && osType.isLocalDNSOverrideRequired()) {
+            localDNSOverride = DEFAULT_LOCAL_DNS
+        }
+        localDNSOverride?.let { dns ->
+            config = configWithLocalDNSAddresses(
+                config = config,
+                replacementAddress = dns
+            )
+        }
+        if (osType == OSType.MacOS) {
+            getTunIP(config)?.let { tunIP ->
+                config = configWithDNSInbound(config)
+                MacOSLocalDNSManager.startService(tunIP)
+            }
+        }
         configFile.writeText(config)
         process = ProcessBuilder(coreFile.absolutePath, "run", "-c", configFile.absolutePath)
             .redirectErrorStream(true)
@@ -86,6 +113,7 @@ object SingBoxManager {
             withContext(Dispatchers.Main) {
                 _isRunning.value = false
                 RemoteConfigsManager.stopConfigUpdates()
+                MacOSLocalDNSManager.stopService()
                 stopCompletion?.let { completion ->
                     completion()
                     stopCompletion = null
@@ -100,6 +128,7 @@ object SingBoxManager {
             return
         }
         stopCompletion = completion
+        MacOSLocalDNSManager.stopService()
         process?.destroy()
     }
 
@@ -212,6 +241,125 @@ object SingBoxManager {
             return Json.encodeToString(JsonElement.serializer(), updatedRoot)
         } catch (e: Exception) {
             return config
+        }
+    }
+
+    fun configWithLocalDNSAddresses(config: String, replacementAddress: String): String {
+        val json = JsonFormatter.json
+        val root = json.parseToJsonElement(config)
+        if (root !is JsonObject) return config
+        val dns = root["dns"] as? JsonObject ?: return config
+        val servers = dns["servers"] as? JsonArray ?: return config
+        val newServers = buildList {
+            for (serverEl in servers) {
+                val server = serverEl as? JsonObject
+                if (server == null) {
+                    add(serverEl)
+                    continue
+                }
+                val type = server["type"]?.jsonPrimitive?.contentOrNull
+                val address = server["address"]?.jsonPrimitive?.contentOrNull
+                when {
+                    type == "local" -> {
+                        val tag = server["tag"]?.jsonPrimitive?.contentOrNull
+                        val newServer = buildJsonObject {
+                            put("type", JsonPrimitive("tcp"))
+                            put("server", JsonPrimitive(replacementAddress))
+                            if (tag != null) {
+                                put("tag", JsonPrimitive(tag))
+                            }
+                        }
+                        add(newServer)
+                    }
+                    address == "local" -> {
+                        val modified = buildJsonObject {
+                            for ((k, v) in server) {
+                                if (k == "address") {
+                                    put(k, JsonPrimitive("tcp://$replacementAddress"))
+                                } else {
+                                    put(k, v)
+                                }
+                            }
+                        }
+                        add(modified)
+                    }
+                    else -> add(serverEl)
+                }
+            }
+        }
+        val newDns = buildJsonObject {
+            for ((k, v) in dns) {
+                if (k == "servers") {
+                    put(k, JsonArray(newServers))
+                } else {
+                    put(k, v)
+                }
+            }
+        }
+        val newRoot = buildJsonObject {
+            for ((k, v) in root) {
+                if (k == "dns") {
+                    put(k, newDns)
+                } else {
+                    put(k, v)
+                }
+            }
+        }
+        return json.encodeToString(JsonObject.serializer(), newRoot)
+    }
+
+    fun configWithDNSInbound(config: String): String {
+        val json = JsonFormatter.json
+        val root = json.parseToJsonElement(config).jsonObject.toMutableMap()
+        val inbounds = root["inbounds"]?.jsonArray?.toMutableList() ?: return config
+        val tunInbound = inbounds
+            .map { it.jsonObject }
+            .firstOrNull { it["type"]?.jsonPrimitive?.content == "tun" }
+            ?: return config
+        val tunIp = extractIp(tunInbound["inet4_address"])
+            ?: extractIp(tunInbound["address"])
+            ?: return config
+        var preservedTag: String? = null
+        val filteredInbounds = inbounds.filterNot { inbound ->
+            val obj = inbound.jsonObject
+            val listen = obj["listen"]?.jsonPrimitive?.content
+            val port = obj["listen_port"]?.jsonPrimitive?.intOrNull
+            if (listen == tunIp && port == 53) {
+                preservedTag = obj["tag"]?.jsonPrimitive?.content
+                true
+            } else {
+                false
+            }
+        }.toMutableList()
+        val newInbound = buildJsonObject {
+            put("type", JsonPrimitive("direct"))
+            put("listen", JsonPrimitive(tunIp))
+            put("listen_port", JsonPrimitive(53))
+            preservedTag?.let { put("tag", JsonPrimitive(it)) }
+        }
+        filteredInbounds.add(JsonObject(newInbound))
+        root["inbounds"] = JsonArray(filteredInbounds)
+        return json.encodeToString(JsonObject(root))
+    }
+
+    fun getTunIP(config: String): String? {
+        val json = JsonFormatter.json
+        val root = json.parseToJsonElement(config).jsonObject.toMutableMap()
+        val inbounds = root["inbounds"]?.jsonArray?.toMutableList() ?: return null
+        val tunInbound = inbounds
+            .map { it.jsonObject }
+            .firstOrNull { it["type"]?.jsonPrimitive?.content == "tun" }
+            ?: return null
+        val tunIp = extractIp(tunInbound["inet4_address"])
+            ?: extractIp(tunInbound["address"])
+        return tunIp
+    }
+
+    fun extractIp(value: JsonElement?): String? {
+        return when (value) {
+            is JsonPrimitive -> value.content.substringBefore("/")
+            is JsonArray -> value.firstOrNull()?.jsonPrimitive?.content?.substringBefore("/")
+            else -> null
         }
     }
 

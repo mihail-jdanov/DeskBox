@@ -80,4 +80,12 @@ enum class OSType {
             MacOS -> false
         }
     }
+
+    fun isLocalDNSOverrideRequired(): Boolean {
+        return when (this) {
+            Windows -> false
+            MacOS, Linux -> true
+        }
+    }
+
 }

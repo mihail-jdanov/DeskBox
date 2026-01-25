@@ -26,7 +26,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import deskbox.composeapp.generated.resources.Res
 import deskbox.composeapp.generated.resources.arrow_drop_down
 import deskbox.composeapp.generated.resources.arrow_drop_up
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
 import org.mikhailzhdanov.deskbox.extensions.success
 import org.mikhailzhdanov.deskbox.extensions.warning
@@ -57,6 +60,14 @@ fun ControlScreen() {
     val viewModel = remember { ControlViewModel() }
     val state by viewModel.uiState.collectAsState()
     val logs by viewModel.logs.collectAsState()
+    var startEnabled by remember { mutableStateOf(true) }
+
+    if (!startEnabled) {
+        LaunchedEffect(Unit) {
+            delay(500)
+            startEnabled = true
+        }
+    }
 
     if (state.isRunning) {
         LaunchedEffect(logs) {
@@ -77,8 +88,9 @@ fun ControlScreen() {
                         } else {
                             viewModel.start()
                         }
+                        startEnabled = false
                     },
-                    enabled = state.isStartAvailable,
+                    enabled = state.isStartAvailable && startEnabled,
                     colors = if (state.isRunning) {
                         ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.error

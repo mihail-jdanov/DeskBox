@@ -1,5 +1,6 @@
 package org.mikhailzhdanov.deskbox.views
 
+import androidx.compose.foundation.LocalScrollbarStyle
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.mikhailzhdanov.deskbox.extensions.withThemedColors
 
 @Composable
 fun TitledScrollView(
@@ -64,7 +66,8 @@ fun TitledScrollView(
 
                 VerticalScrollbar(
                     adapter = rememberScrollbarAdapter(scrollState),
-                    modifier = Modifier.align(Alignment.CenterEnd)
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    style = LocalScrollbarStyle.current.withThemedColors()
                 )
             }
 

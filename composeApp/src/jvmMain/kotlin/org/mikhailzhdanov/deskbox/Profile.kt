@@ -12,5 +12,6 @@ data class Profile(
     val autoUpdate: Boolean = true,
     val autoUpdateInterval: Long? = null,
     val lastUpdateTimestamp: Long = 0,
-    val config: String = ""
+    val config: String = "",
+    val localDNSOverride: String? = null
 )

@@ -1,5 +1,6 @@
 package org.mikhailzhdanov.deskbox.views
 
+import androidx.compose.foundation.LocalScrollbarStyle
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.Box
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import org.mikhailzhdanov.deskbox.extensions.withThemedColors
 
 @Composable
 fun CustomTextField(
@@ -121,7 +123,8 @@ fun CustomTextField(
         if (type == CustomTextFieldType.MultilineWithScrollbar) {
             VerticalScrollbar(
                 adapter = rememberScrollbarAdapter(scrollState),
-                modifier = Modifier.align(Alignment.CenterEnd)
+                modifier = Modifier.align(Alignment.CenterEnd),
+                style = LocalScrollbarStyle.current.withThemedColors()
             )
         }
     }

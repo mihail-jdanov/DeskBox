@@ -7,7 +7,7 @@ import kotlinx.serialization.json.Json
 object JsonFormatter {
 
     @OptIn(ExperimentalSerializationApi::class)
-    private val json = Json {
+    val json = Json {
         prettyPrint = true
         prettyPrintIndent = "  "
     }

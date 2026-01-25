@@ -145,6 +145,29 @@ fun EditProfileScreen(
                     }
                 }
 
+                RowContainer {
+                    Text("Local DNS override")
+
+                    CustomTextField(
+                        value = state.profile.localDNSOverride ?: "",
+                        onValueChange = { value ->
+                            viewModel.setLocalDNSOverride(value)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 8.dp),
+                        maxLength = 39,
+                        placeholder = if (viewModel.isLocalDNSOverrideRequired) "Required" else "Optional",
+                        leftAligned = false,
+                        inputFilter = { input ->
+                            val allowedChars = "0123456789abcdef:."
+                            input.filter { allowedChars.contains(char = it, ignoreCase = true) }
+                        }
+                    )
+                }
+
+                Separator()
+
                 Spacer(modifier = Modifier.weight(1f))
 
                 Row(

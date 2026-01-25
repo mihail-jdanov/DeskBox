@@ -68,9 +68,10 @@ object ProfilesManager {
         )
         _profiles.value = currentProfiles
         oldProfile?.let { oldProfile ->
+            val dnsChanged = oldProfile.localDNSOverride != profile.localDNSOverride
             if (SingBoxManager.isRunning.value
                 && SingBoxManager.lastStartedProfile?.id == profile.id
-                && oldProfile.config != profile.config) {
+                && (oldProfile.config != profile.config || dnsChanged)) {
                 SingBoxManager.stop {
                     SingBoxManager.start(profile)
                 }
