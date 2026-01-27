@@ -93,7 +93,11 @@ object SingBoxManager {
             }
         }
         configFile.writeText(config)
-        process = ProcessBuilder(coreFile.absolutePath, "run", "-c", configFile.absolutePath)
+        process = ProcessBuilder(
+            coreFile.absolutePath,
+            "run", "-c", configFile.absolutePath,
+            "-D", osType.getWorkingDir()
+        )
             .redirectErrorStream(true)
             .start()
         _logs.value = emptyList()

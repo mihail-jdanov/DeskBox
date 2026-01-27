@@ -26,6 +26,8 @@ object ProfilesManager {
     private val _profiles = MutableStateFlow(emptyList<Profile>())
     private val _profileToImport = MutableStateFlow<Profile?>(null)
 
+    const val IMPORT_PROFILE_URI_PREFIX = "sing-box://import-remote-profile"
+
     val profiles = _profiles.asStateFlow()
     val profileToImport = _profileToImport.asStateFlow()
 
@@ -95,7 +97,7 @@ object ProfilesManager {
     }
 
     fun importRemoteProfile(string: String) {
-        if (!string.startsWith("sing-box://import-remote-profile")) return
+        if (!string.startsWith(IMPORT_PROFILE_URI_PREFIX)) return
         val uri = URI(string)
         val rawName = uri.fragment ?: ""
         var name = URLDecoder.decode(rawName, StandardCharsets.UTF_8.name()) ?: ""

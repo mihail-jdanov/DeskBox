@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import org.jetbrains.skia.Image
 import org.mikhailzhdanov.deskbox.Profile
 import org.mikhailzhdanov.deskbox.managers.DialogsManager
+import org.mikhailzhdanov.deskbox.managers.ProfilesManager.IMPORT_PROFILE_URI_PREFIX
 import org.mikhailzhdanov.deskbox.views.TitledView
 import qrcode.QRCode
 import java.awt.Toolkit
@@ -112,7 +113,7 @@ fun ProfileQRScreen(
 }
 
 private fun getSingBoxLink(profile: Profile): String {
-    return "sing-box://import-remote-profile?url=${profile.remoteURL}#${encodeUrlComponent(profile.name)}"
+    return "$IMPORT_PROFILE_URI_PREFIX?url=${profile.remoteURL}#${encodeUrlComponent(profile.name)}"
 }
 
 private fun encodeUrlComponent(input: String): String {

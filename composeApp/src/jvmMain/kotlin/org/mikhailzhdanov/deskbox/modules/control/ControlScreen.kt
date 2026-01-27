@@ -64,7 +64,7 @@ fun ControlScreen() {
 
     if (!startEnabled) {
         LaunchedEffect(Unit) {
-            delay(500)
+            delay(300)
             startEnabled = true
         }
     }

@@ -40,6 +40,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.mikhailzhdanov.deskbox.managers.AutorunManager
 import org.mikhailzhdanov.deskbox.managers.DialogsManager
 import org.mikhailzhdanov.deskbox.managers.ProfilesManager
+import org.mikhailzhdanov.deskbox.managers.ProfilesManager.IMPORT_PROFILE_URI_PREFIX
 import org.mikhailzhdanov.deskbox.managers.SettingsManager
 import org.mikhailzhdanov.deskbox.managers.SingBoxManager
 import org.mikhailzhdanov.deskbox.modules.dialogs.DialogsScreen
@@ -109,8 +110,10 @@ fun main(args: Array<String>) = application {
             return@application
         }
 
-        if (!args.isEmpty()) {
-            onRestoreRequest(args.first())
+        args.firstOrNull()?.let { arg ->
+            if (arg.startsWith(IMPORT_PROFILE_URI_PREFIX)) {
+                onRestoreRequest(arg)
+            }
         }
 
         detector.registerListener { isDark ->
