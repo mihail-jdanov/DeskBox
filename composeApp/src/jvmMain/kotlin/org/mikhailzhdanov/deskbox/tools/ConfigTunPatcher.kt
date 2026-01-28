@@ -1,7 +1,8 @@
 package org.mikhailzhdanov.deskbox.tools
 
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonArray
@@ -13,8 +14,8 @@ import kotlin.collections.set
 object ConfigTunPatcher {
 
     fun patchTunInterfaceName(os: OS, configJson: String): String {
-        if (os.type == OSType.Linux) { return configJson }
-        val json = Json { ignoreUnknownKeys = true }
+        if (os.type == OSType.Linux) return configJson
+        val json = JsonFormatter.json
         val config = json.parseToJsonElement(configJson)
         val configObj = config.jsonObject
         val inbounds = configObj["inbounds"]?.jsonArray ?: return configJson
@@ -36,13 +37,16 @@ object ConfigTunPatcher {
         val patchedConfig = configObj.toMutableMap().apply {
             this["inbounds"] = JsonArray(patchedInbounds)
         }
-        return json.encodeToJsonElement(patchedConfig).toString()
+        return json.encodeToString(
+            JsonElement.serializer(),
+            JsonObject(patchedConfig)
+        )
     }
 
     private fun generateTunInterfaceName(os: OS, baseName: String): String {
         when (os.type) {
             OSType.Windows -> {
-                if (!os.isOldOS) return baseName
+                if (!os.isOldOS) return "singtun0"
                 val randomChars = UUID.randomUUID().toString()
                     .replace("-", "")
                     .take(4)
