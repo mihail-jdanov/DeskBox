@@ -57,11 +57,13 @@ object SettingsManager {
     fun setSelectedProfileID(id: String?) {
         _selectedProfileID.value = id ?: ""
         prefs.put(SELECTED_PROFILE_ID_KEY, id ?: "")
+        prefs.flush()
     }
 
     fun setAutostartProfile(value: Boolean) {
         _autostartProfile.value = value
         prefs.putBoolean(AUTOSTART_PROFILE_KEY, value)
+        prefs.flush()
     }
 
     fun setLaunchWithSystem(value: Boolean) {
@@ -70,6 +72,7 @@ object SettingsManager {
                 if (success) {
                     _launchWithSystem.value = true
                     prefs.putBoolean(LAUNCH_WITH_SYSTEM_KEY, true)
+                    prefs.flush()
                 }
             }
         } else {
@@ -77,6 +80,7 @@ object SettingsManager {
                 if (success) {
                     _launchWithSystem.value = false
                     prefs.putBoolean(LAUNCH_WITH_SYSTEM_KEY, false)
+                    prefs.flush()
                 }
             }
         }
@@ -85,21 +89,25 @@ object SettingsManager {
     fun setMinimizeOnLaunch(value: Boolean) {
         _minimizeOnLaunch.value = value
         prefs.putBoolean(MINIMIZE_ON_LAUNCH_KEY, value)
+        prefs.flush()
     }
 
     fun setPreferredTheme(value: Int) {
         _preferredTheme.value = value
         prefs.putInt(PREFERRED_THEME_KEY, value)
+        prefs.flush()
     }
 
     fun setConfigOverrideValue(value: String) {
         _configOverrideValue.value = value
         prefs.put(CONFIG_OVERRIDE_VALUE_KEY, value)
+        prefs.flush()
     }
 
     fun saveWindowPosition(position: WindowPosition) {
         prefs.putInt(WINDOW_POSITION_X_KEY, position.x.value.toInt())
         prefs.putInt(WINDOW_POSITION_Y_KEY, position.y.value.toInt())
+        prefs.flush()
     }
 
     fun loadWindowPosition(): WindowPosition {
