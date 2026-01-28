@@ -5,12 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -32,19 +30,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.FrameWindowScope
 import org.mikhailzhdanov.deskbox.darkColorScheme
 import java.awt.Frame
 
+private val titleBarHeight = 32.dp
+private val buttonsSize = 32.dp
 private val crossHoverColor = Color(0xFFC22B1D)
-private val buttonSize = 32.dp
 
 @Composable
-fun FrameWindowScope.CustomTitleBar(
-    isWindows: Boolean,
+fun FrameWindowScope.WindowsTitleBar(
     title: String,
     icon: Painter,
     closeAction: () -> Unit
@@ -52,34 +49,23 @@ fun FrameWindowScope.CustomTitleBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(32.dp)
+            .height(titleBarHeight)
             .background(MaterialTheme.colorScheme.surface),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (isWindows) {
-            Image(
-                painter = icon,
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .size(16.dp)
-            )
+        Image(
+            painter = icon,
+            contentDescription = null,
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .size(16.dp)
+        )
 
-            Text(
-                text = title,
-                modifier = Modifier.weight(1f),
-                fontSize = 12.sp
-            )
-        } else {
-            Spacer(modifier = Modifier.width(buttonSize * 2))
-
-            Text(
-                text = title,
-                modifier = Modifier.weight(1f),
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center
-            )
-        }
+        Text(
+            text = title,
+            modifier = Modifier.weight(1f),
+            fontSize = 12.sp
+        )
 
         WindowButton(
             onClick = {
@@ -111,7 +97,7 @@ private fun FrameWindowScope.WindowButton(
 
     Box(
         modifier = Modifier
-            .size(buttonSize)
+            .size(buttonsSize)
             .background(if (hovered) hoverColor else Color.Transparent)
             .onPointerEvent(PointerEventType.Move) { hovered = true }
             .onPointerEvent(PointerEventType.Exit) { hovered = false }

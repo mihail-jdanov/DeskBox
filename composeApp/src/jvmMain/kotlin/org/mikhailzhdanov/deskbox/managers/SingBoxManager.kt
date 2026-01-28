@@ -187,7 +187,6 @@ object SingBoxManager {
                         .filter { it.contains(coreFile.absolutePath) }
                         .forEach { line ->
                             val pid = line.trim().split("\\s+".toRegex())[0].toLong()
-                            println(pid)
                             ProcessHandle.of(pid).ifPresent { it.destroy() }
                         }
                 }

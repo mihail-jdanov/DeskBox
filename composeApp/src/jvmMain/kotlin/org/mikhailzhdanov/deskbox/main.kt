@@ -48,7 +48,8 @@ import org.mikhailzhdanov.deskbox.modules.main.MainScreen
 import org.mikhailzhdanov.deskbox.modules.tray.TrayMenu
 import org.mikhailzhdanov.deskbox.tools.OSChecker
 import org.mikhailzhdanov.deskbox.tools.OSType
-import org.mikhailzhdanov.deskbox.views.CustomTitleBar
+import org.mikhailzhdanov.deskbox.views.LinuxTitleBar
+import org.mikhailzhdanov.deskbox.views.WindowsTitleBar
 import java.awt.Desktop
 import java.awt.Frame
 import kotlin.io.path.readText
@@ -227,9 +228,8 @@ fun main(args: Array<String>) = application {
             ) {
                 Column {
                     when (osType) {
-                        OSType.Windows, OSType.Linux -> {
-                            CustomTitleBar(
-                                isWindows = osType == OSType.Windows,
+                        OSType.Windows -> {
+                            WindowsTitleBar(
                                 title = APP_NAME,
                                 icon = painterResource(windowIcon),
                                 closeAction = closeAction
@@ -237,6 +237,12 @@ fun main(args: Array<String>) = application {
                         }
                         OSType.MacOS -> {
                             Box(modifier = Modifier.height(28.dp))
+                        }
+                        OSType.Linux -> {
+                            LinuxTitleBar(
+                                title = APP_NAME,
+                                closeAction = closeAction
+                            )
                         }
                     }
 
