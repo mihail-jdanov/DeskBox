@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -80,10 +79,10 @@ object SingBoxManager {
         if (localDNSOverride.isNullOrEmpty() && osType.isLocalDNSOverrideRequired()) {
             localDNSOverride = DEFAULT_LOCAL_DNS
         }
-        localDNSOverride?.let { dns ->
+        if (!localDNSOverride.isNullOrEmpty()) {
             config = configWithLocalDNSAddresses(
                 config = config,
-                replacementAddress = dns
+                replacementAddress = localDNSOverride
             )
         }
         if (osType == OSType.MacOS) {
@@ -230,8 +229,9 @@ object SingBoxManager {
 
     private fun configWithoutParamInRoute(config: String, paramName: String): String {
         if (!config.contains(paramName)) return config
+        val json = JsonFormatter.json
         try {
-            val root = Json.parseToJsonElement(config)
+            val root = json.parseToJsonElement(config)
             if (root !is JsonObject) return config
             val route = root["route"]
             if (route !is JsonObject) return config
@@ -241,7 +241,7 @@ object SingBoxManager {
                     put("route", updatedRoute)
                 }
             )
-            return Json.encodeToString(JsonElement.serializer(), updatedRoot)
+            return json.encodeToString(JsonElement.serializer(), updatedRoot)
         } catch (e: Exception) {
             return config
         }
