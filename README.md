@@ -18,7 +18,7 @@ Please note that the application requires administrator privileges to run.
 2) Optional: Before installing, you can replace **sing-box** in unzipped folder with the [version](https://github.com/SagerNet/sing-box/releases) you need.
 3) Open **Terminal** and run the following command:
 ```
-xattr -r -d com.apple.quarantine ~/Downloads/DeskBox_1.4.0
+xattr -r -d com.apple.quarantine ~/Downloads/DeskBox_1.4.1
 ```
 4) Open unzipped folder and run **sing-box_install** to install sing-box to the working directory (you will be prompted for the administrator password to grant the necessary permissions).
 5) Drag the **DeskBox** application to the **Applications** folder.
