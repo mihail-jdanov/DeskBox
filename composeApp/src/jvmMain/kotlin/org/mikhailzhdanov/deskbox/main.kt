@@ -50,6 +50,7 @@ import org.mikhailzhdanov.deskbox.tools.OSChecker
 import org.mikhailzhdanov.deskbox.tools.OSType
 import org.mikhailzhdanov.deskbox.views.LinuxTitleBar
 import org.mikhailzhdanov.deskbox.views.WindowsTitleBar
+import oshi.SystemInfo
 import java.awt.Desktop
 import java.awt.Frame
 import kotlin.io.path.readText
@@ -73,6 +74,9 @@ fun main(args: Array<String>) = application {
     var isSystemInDarkTheme by remember { mutableStateOf(detector.isDark) }
     val theme by SettingsManager.preferredTheme.collectAsState()
     val osType = OSChecker.currentOS.type
+
+    println("Device ID:")
+    println(getDeviceId())
 
     if (!initialSetupCompleted) {
         val onRestoreRequest: (String) -> Unit = { arg ->
@@ -316,4 +320,27 @@ private fun registerSingBoxLinks() {
             ).start().waitFor()
         }
     }
+}
+
+fun getDeviceId(): String {
+    val systemInfo = SystemInfo()
+    val operatingSystem = systemInfo.operatingSystem
+    val hardwareAbstractionLayer = systemInfo.hardware
+    val centralProcessor = hardwareAbstractionLayer.processor
+    val computerSystem = hardwareAbstractionLayer.computerSystem
+
+    val vendor = operatingSystem.manufacturer
+    val processorSerialNumber = computerSystem.serialNumber
+    val processorIdentifier = centralProcessor.processorIdentifier
+    val processors = centralProcessor.logicalProcessorCount
+
+    val delimiter = "#"
+
+    return vendor +
+            delimiter +
+            processorSerialNumber +
+            delimiter +
+            processorIdentifier +
+            delimiter +
+            processors // TODO: encode to base64 if needed
 }
