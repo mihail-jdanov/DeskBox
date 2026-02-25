@@ -1,11 +1,10 @@
 {
     "dns": {
-        "final": "google-tls-dns",
         "servers": [
             {
-                "address": "tls://8.8.8.8",
-                "detour": "direct",
-                "tag": "google-tls-dns"
+                "server": "8.8.8.8",
+                "tag": "google-tls-dns",
+                "type": "tls"
             }
         ]
     },
@@ -49,6 +48,7 @@
     ],
     "route": {
         "auto_detect_interface": true,
+        "default_domain_resolver": "google-tls-dns",
         "final": "proxy",
         "rules": [
             {
@@ -60,6 +60,10 @@
             {
                 "action": "hijack-dns",
                 "protocol": "dns"
+            },
+            {
+                "ip_is_private": true,
+                "outbound": "direct"
             },
             {
                 "action": "reject",
