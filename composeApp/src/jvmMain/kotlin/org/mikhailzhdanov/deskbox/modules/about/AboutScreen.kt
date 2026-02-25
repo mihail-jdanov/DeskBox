@@ -3,20 +3,25 @@ package org.mikhailzhdanov.deskbox.modules.about
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import deskbox.composeapp.generated.resources.Res
 import deskbox.composeapp.generated.resources.app_icon_vector
 import org.jetbrains.compose.resources.painterResource
 import org.mikhailzhdanov.deskbox.APP_NAME
+import org.mikhailzhdanov.deskbox.tools.OSChecker
 import org.mikhailzhdanov.deskbox.views.TitledView
 import java.awt.Desktop
 import java.net.URI
@@ -52,6 +57,24 @@ fun AboutScreen() {
                     modifier = Modifier.padding(top = 48.dp)
                 ) {
                     Text("Source code on GitHub")
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .alpha(0.25f)
+                    .align(Alignment.BottomCenter)
+            ) {
+                Text(
+                    text = "HWID: ",
+                    fontSize = 12.sp
+                )
+
+                SelectionContainer {
+                    Text(
+                        text = OSChecker.currentOS.type.getHWID(),
+                        fontSize = 12.sp
+                    )
                 }
             }
         }

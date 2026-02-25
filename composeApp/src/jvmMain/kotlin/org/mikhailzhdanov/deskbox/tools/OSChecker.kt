@@ -1,8 +1,10 @@
 package org.mikhailzhdanov.deskbox.tools
 
 import org.mikhailzhdanov.deskbox.APP_NAME
+import oshi.SystemInfo
 import java.io.File
 import java.nio.file.Paths
+import java.util.UUID
 
 object OSChecker {
 
@@ -86,6 +88,27 @@ enum class OSType {
             Windows -> false
             MacOS, Linux -> true
         }
+    }
+
+    fun getHWID(): String {
+        val systemInfo = SystemInfo()
+        val hardware = systemInfo.hardware
+        val processor = hardware.processor
+        val vendor = systemInfo.operatingSystem.manufacturer
+        val baseboard = hardware.computerSystem.baseboard.toString()
+        val identifier = processor.processorIdentifier.identifier
+        val hardwareID = when (this) {
+            Windows, Linux -> {
+                processor.processorIdentifier.processorID
+            }
+            MacOS -> {
+                hardware.computerSystem.hardwareUUID
+            }
+        }
+        val result = vendor + baseboard + identifier + hardwareID + APP_NAME
+        return UUID.nameUUIDFromBytes(
+            result.toByteArray(Charsets.UTF_8)
+        ).toString().uppercase()
     }
 
 }

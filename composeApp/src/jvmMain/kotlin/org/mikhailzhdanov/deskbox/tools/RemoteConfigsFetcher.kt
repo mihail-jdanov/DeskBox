@@ -12,6 +12,8 @@ object RemoteConfigsFetcher {
 
     private const val TIMEOUT_INTERVAL: Long = 10
 
+    private val hwid = OSChecker.currentOS.type.getHWID()
+
     suspend fun fetchConfig(url: String): String = withContext(Dispatchers.IO) {
         val client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(TIMEOUT_INTERVAL))
@@ -20,6 +22,7 @@ object RemoteConfigsFetcher {
             .uri(URI(url))
             .timeout(Duration.ofSeconds(TIMEOUT_INTERVAL))
             .header("User-Agent", "SFM")
+            .header("x-hwid", hwid)
             .GET()
             .build()
         try {
