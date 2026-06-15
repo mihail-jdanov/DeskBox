@@ -1,5 +1,6 @@
 # DeskBox
-Simple GUI app for [sing-box](https://github.com/SagerNet/sing-box) management.
+Simple GUI app for [sing-box](https://github.com/SagerNet/sing-box) management.  
+Supports sing-box forks, such as [sing-box-extended](https://github.com/shtorm-7/sing-box-extended). To use one, download it from the [releases](https://github.com/shtorm-7/sing-box-extended/releases) page and replace the bundled sing-box executable with it before installation (on Windows, simply replace the .exe file in the application folder).
 
 ## Platforms
 Windows 10+  
