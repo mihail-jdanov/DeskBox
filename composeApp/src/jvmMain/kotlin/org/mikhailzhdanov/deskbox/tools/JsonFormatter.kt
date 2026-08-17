@@ -10,11 +10,13 @@ object JsonFormatter {
     val json = Json {
         prettyPrint = true
         prettyPrintIndent = "  "
+        allowComments = true
+        allowTrailingComma = true
     }
 
     fun formatJson(jsonString: String): String {
         try {
-            val jsonElement = Json.parseToJsonElement(jsonString)
+            val jsonElement = json.parseToJsonElement(jsonString)
             return json.encodeToString(jsonElement)
         } catch (e: Exception) {
             return jsonString

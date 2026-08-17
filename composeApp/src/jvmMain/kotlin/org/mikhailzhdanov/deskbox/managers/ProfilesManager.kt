@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.json.*
 import org.mikhailzhdanov.deskbox.Profile
 import org.mikhailzhdanov.deskbox.tools.JsonFormatter
 import org.mikhailzhdanov.deskbox.tools.OSChecker
@@ -22,7 +21,6 @@ object ProfilesManager {
 
     private val scope = CoroutineScope(Dispatchers.IO)
     private val profilesFile = File(OSChecker.currentOS.type.getWorkingDir(), PROFILES_FILE_NAME)
-    private val json = Json { prettyPrint = true }
     private val _profiles = MutableStateFlow(emptyList<Profile>())
     private val _profileToImport = MutableStateFlow<Profile?>(null)
 
@@ -41,7 +39,7 @@ object ProfilesManager {
             return
         }
         _profiles.value = try {
-            json.decodeFromString(
+            JsonFormatter.json.decodeFromString(
                 deserializer = ListSerializer(Profile.serializer()),
                 string = profilesFile.readText()
             )
@@ -63,7 +61,7 @@ object ProfilesManager {
             currentProfiles += profile
         }
         profilesFile.writeText(
-            json.encodeToString(
+            JsonFormatter.json.encodeToString(
                 serializer = ListSerializer(Profile.serializer()),
                 value = currentProfiles
             )
@@ -85,7 +83,7 @@ object ProfilesManager {
         val currentProfiles = _profiles.value.toMutableList()
         currentProfiles.removeAll { it.id == profile.id }
         profilesFile.writeText(
-            json.encodeToString(
+            JsonFormatter.json.encodeToString(
                 serializer = ListSerializer(Profile.serializer()),
                 value = currentProfiles
             )
