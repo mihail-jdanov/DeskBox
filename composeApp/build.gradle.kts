@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
 
-    kotlin("plugin.serialization") version "2.2.20"
+    kotlin("plugin.serialization") version "2.4.10"
 }
 
 configurations.all {
@@ -30,14 +30,11 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
         }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-        }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.7.3")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
             implementation("io.github.kdroidfilter:composenativetray:1.0.4")
             implementation("io.github.g0dkar:qrcode-kotlin:4.5.0")
             implementation("com.github.Dansoftowner:jSystemThemeDetector:3.9.1")
